@@ -11,6 +11,7 @@ import LogoUpload from './LogoUpload'
 import ExportPanel from './ExportPanel'
 import SlideEditor from '@/components/Editor/SlideEditor'
 import AIGenerator from './AIGenerator'
+import { Sparkles, PenLine, Palette, Download } from 'lucide-react'
 
 interface CustomizationPanelProps {
   onExport: () => void
@@ -20,14 +21,26 @@ interface CustomizationPanelProps {
 
 export default function CustomizationPanel({ onExport, onExportSlide, isExporting }: CustomizationPanelProps) {
   return (
-    <div className="w-72 border-l border-border bg-card flex flex-col shrink-0">
+    <div className="w-80 border-l border-border bg-card flex flex-col shrink-0">
       <Tabs defaultValue="ai" className="flex flex-col flex-1 min-h-0">
-        <div className="border-b border-border px-2 pt-2">
-          <TabsList className="w-full h-8">
-            <TabsTrigger value="ai" className="text-xs flex-1">Gerar</TabsTrigger>
-            <TabsTrigger value="content" className="text-xs flex-1">Conte\u00fado</TabsTrigger>
-            <TabsTrigger value="design" className="text-xs flex-1">Design</TabsTrigger>
-            <TabsTrigger value="export" className="text-xs flex-1">Exportar</TabsTrigger>
+        <div className="border-b border-border px-3 pt-2">
+          <TabsList className="w-full h-9 grid grid-cols-4">
+            <TabsTrigger value="ai" className="text-xs gap-1 px-1">
+              <Sparkles className="w-3 h-3" />
+              Gerar
+            </TabsTrigger>
+            <TabsTrigger value="content" className="text-xs gap-1 px-1">
+              <PenLine className="w-3 h-3" />
+              Editar
+            </TabsTrigger>
+            <TabsTrigger value="design" className="text-xs gap-1 px-1">
+              <Palette className="w-3 h-3" />
+              Design
+            </TabsTrigger>
+            <TabsTrigger value="export" className="text-xs gap-1 px-1">
+              <Download className="w-3 h-3" />
+              Exportar
+            </TabsTrigger>
           </TabsList>
         </div>
 

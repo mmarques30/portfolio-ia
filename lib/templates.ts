@@ -53,8 +53,8 @@ export const TEMPLATES: TemplateConfig[] = [
   },
   {
     id: 'data-trends',
-    name: 'Dados & Tend\u00eancias',
-    description: 'Estat\u00edsticas, compara\u00e7\u00f5es, n\u00fameros em destaque',
+    name: 'Dados & Tendências',
+    description: 'Estatísticas, comparações, números em destaque',
     defaults: {
       colors: {
         background: '#FAFAF6',
@@ -79,7 +79,7 @@ export const TEMPLATES: TemplateConfig[] = [
   {
     id: 'storytelling',
     name: 'Storytelling',
-    description: 'Hist\u00f3rias pessoais, cases, jornadas',
+    description: 'Histórias pessoais, cases, jornadas',
     defaults: {
       colors: {
         background: '#FFFFFF',
@@ -106,7 +106,7 @@ export const TEMPLATES: TemplateConfig[] = [
 export const IAPLICADA_PRESETS = [
   { name: 'Sage Claro', value: '#D4DEB3' },
   { name: 'Oliva Escuro', value: '#6B7A2F' },
-  { name: 'Sage M\u00e9dio', value: '#C5D1A0' },
+  { name: 'Sage Médio', value: '#C5D1A0' },
   { name: 'Verde Amarelado', value: '#9AAD3D' },
   { name: 'Fundo Escuro', value: '#1A1A1A' },
   { name: 'Fundo Claro', value: '#F4F2ED' },

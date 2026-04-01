@@ -25,7 +25,7 @@ export default function AIGenerator() {
   return (
     <div className="p-4 space-y-4">
       <div className="space-y-2">
-        <Label className="text-xs">Modo de gera\u00e7\u00e3o</Label>
+        <Label className="text-xs">Modo de geração</Label>
         <div className="flex gap-1">
           <button
             onClick={() => setMode('script')}
@@ -49,7 +49,7 @@ export default function AIGenerator() {
             )}
           >
             <Sparkles className="w-3.5 h-3.5" />
-            T\u00f3pico
+            Tópico
           </button>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function AIGenerator() {
           <Textarea
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder={'Cole aqui seu roteiro completo...\n\nSepare os slides com linhas em branco.\n\nExemplo:\n\n5 Dicas de Produtividade\nAprenda a render mais no dia a dia\n\nDica 1: Planeje seu dia\nReserve 10 minutos toda manh\u00e3 para organizar suas prioridades.\n\nDica 2: Use blocos de tempo\nDivida seu dia em blocos focados de 25-50 minutos.'}
+            placeholder={'Cole aqui seu roteiro completo...\n\nSepare os slides com linhas em branco.\n\nExemplo:\n\n5 Dicas de Produtividade\nAprenda a render mais no dia a dia\n\nDica 1: Planeje seu dia\nReserve 10 minutos toda manhã para organizar suas prioridades.\n\nDica 2: Use blocos de tempo\nDivida seu dia em blocos focados de 25-50 minutos.'}
             className="text-sm min-h-[200px] resize-none"
           />
         ) : (
@@ -76,7 +76,7 @@ export default function AIGenerator() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs">N\u00famero de slides</Label>
+        <Label className="text-xs">Número de slides</Label>
         <div className="flex items-center gap-2">
           <input
             type="range"
@@ -101,8 +101,8 @@ export default function AIGenerator() {
 
       <p className="text-[10px] text-muted-foreground">
         {mode === 'script'
-          ? 'O texto ser\u00e1 distribu\u00eddo automaticamente entre os slides. Separe se\u00e7\u00f5es com linhas em branco.'
-          : 'Ser\u00e1 gerada uma estrutura de carrossel com base no t\u00f3pico informado. Edite os textos depois.'}
+          ? 'O texto será distribuído automaticamente entre os slides. Separe seções com linhas em branco.'
+          : 'Será gerada uma estrutura de carrossel com base no tópico informado. Edite os textos depois.'}
       </p>
     </div>
   )

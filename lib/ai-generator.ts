@@ -21,9 +21,7 @@ function extractTitleAndBody(text: string): { title: string; body: string } {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0)
   if (lines.length === 0) return { title: '', body: '' }
   if (lines.length === 1) {
-    // If single line is short, use as title
     if (lines[0].length <= 60) return { title: lines[0], body: '' }
-    // Otherwise split at a natural point
     const words = lines[0].split(' ')
     const mid = Math.min(6, Math.ceil(words.length / 3))
     return {
@@ -31,23 +29,21 @@ function extractTitleAndBody(text: string): { title: string; body: string } {
       body: words.slice(mid).join(' '),
     }
   }
-  // First line as title, rest as body
   let title = lines[0].replace(/^[#\-\*\u2022\d\.\)]+\s*/, '')
   if (title.length > 80) title = title.substring(0, 77) + '...'
   return { title, body: lines.slice(1).join('\n') }
 }
 
-const TOPIC_TEMPLATES: Record<string, { emoji: string; titles: string[] }> = {
+const TOPIC_TEMPLATES = {
   default: {
-    emoji: '\u2728',
     titles: [
-      'Voc\u00ea sabia disso?',
+      'Você sabia disso?',
       'O ponto principal',
-      'Na pr\u00e1tica...',
-      'O segredo \u00e9...',
+      'Na prática...',
+      'O segredo é...',
       'Dica extra',
       'Resumindo',
-      'A verdade \u00e9 que...',
+      'A verdade é que...',
       'O erro mais comum',
       'Como aplicar',
       'Resultado final',
@@ -55,7 +51,7 @@ const TOPIC_TEMPLATES: Record<string, { emoji: string; titles: string[] }> = {
   },
 }
 
-const SLIDE_EMOJIS = ['\u2728', '1\ufe0f\u20e3', '2\ufe0f\u20e3', '3\ufe0f\u20e3', '4\ufe0f\u20e3', '5\ufe0f\u20e3', '6\ufe0f\u20e3', '7\ufe0f\u20e3', '8\ufe0f\u20e3', '9\ufe0f\u20e3', '\ud83d\udd1f']
+const SLIDE_EMOJIS = ['✨', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
 
 export function generateCarouselSlides(options: GenerateOptions): Slide[] {
   const { mode, input, slideCount } = options
@@ -75,22 +71,19 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
     return generateFromTopic('Meu Carrossel', totalSlides)
   }
 
-  // First paragraph -> cover
   const cover = extractTitleAndBody(paragraphs[0])
   slides.push({
     id: generateId(),
-    title: cover.title || 'T\u00edtulo do Carrossel',
-    body: cover.body || 'Deslize para saber mais \u2192',
+    title: cover.title || 'Título do Carrossel',
+    body: cover.body || 'Deslize para saber mais →',
     quote: '',
-    emoji: '\u2728',
+    emoji: '✨',
   })
 
-  // Middle paragraphs -> content slides
-  const contentCount = totalSlides - 2 // minus cover and CTA
+  const contentCount = totalSlides - 2
   const contentParagraphs = paragraphs.slice(1)
 
   if (contentParagraphs.length >= contentCount) {
-    // More paragraphs than slides, distribute evenly
     const step = contentParagraphs.length / contentCount
     for (let i = 0; i < contentCount; i++) {
       const idx = Math.floor(i * step)
@@ -104,7 +97,6 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
       })
     }
   } else {
-    // Fewer paragraphs than slides, use all paragraphs + fill remaining
     for (let i = 0; i < contentCount; i++) {
       if (i < contentParagraphs.length) {
         const { title, body } = extractTitleAndBody(contentParagraphs[i])
@@ -119,7 +111,7 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
         slides.push({
           id: generateId(),
           title: `Ponto ${i + 1}`,
-          body: 'Adicione seu conte\u00fado aqui...',
+          body: 'Adicione seu conteúdo aqui...',
           quote: '',
           emoji: SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)],
         })
@@ -127,13 +119,12 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
     }
   }
 
-  // CTA slide
   slides.push({
     id: generateId(),
-    title: 'Gostou do conte\u00fado?',
+    title: 'Gostou do conteúdo?',
     body: 'Salve este post e compartilhe!',
     quote: '',
-    emoji: '\ud83d\udc49',
+    emoji: '👉',
   })
 
   return slides
@@ -143,16 +134,14 @@ function generateFromTopic(topic: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
   const templates = TOPIC_TEMPLATES.default
 
-  // Cover
   slides.push({
     id: generateId(),
-    title: topic || 'T\u00edtulo do Carrossel',
-    body: 'Deslize para saber mais \u2192',
+    title: topic || 'Título do Carrossel',
+    body: 'Deslize para saber mais →',
     quote: '',
-    emoji: '\u2728',
+    emoji: '✨',
   })
 
-  // Content slides
   const contentCount = totalSlides - 2
   for (let i = 0; i < contentCount; i++) {
     const titleIdx = i % templates.titles.length
@@ -165,13 +154,12 @@ function generateFromTopic(topic: string, totalSlides: number): Slide[] {
     })
   }
 
-  // CTA
   slides.push({
     id: generateId(),
-    title: 'Gostou do conte\u00fado?',
+    title: 'Gostou do conteúdo?',
     body: 'Salve este post e compartilhe!',
     quote: '',
-    emoji: '\ud83d\udc49',
+    emoji: '👉',
   })
 
   return slides

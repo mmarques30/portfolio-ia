@@ -9,9 +9,9 @@ import { cn } from '@/lib/utils'
 import { Upload, X } from 'lucide-react'
 
 const BG_TYPES: { value: BackgroundType; label: string }[] = [
-  { value: 'solid', label: 'S\u00f3lido' },
+  { value: 'solid', label: 'Sólido' },
   { value: 'gradient', label: 'Gradiente' },
-  { value: 'pattern', label: 'Padr\u00e3o' },
+  { value: 'pattern', label: 'Padrão' },
   { value: 'image', label: 'Imagem' },
 ]
 
@@ -87,7 +87,7 @@ export default function BackgroundSelector() {
 
       {state.background.type === 'pattern' && (
         <div className="space-y-2">
-          <Label className="text-xs">Padr\u00e3o</Label>
+          <Label className="text-xs">Padrão</Label>
           <div className="flex gap-1">
             {PATTERNS.map(p => (
               <button

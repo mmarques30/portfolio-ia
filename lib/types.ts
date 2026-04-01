@@ -18,7 +18,7 @@ export interface FontConfig {
   body: string
 }
 
-export type BackgroundType = 'solid' | 'gradient' | 'pattern'
+export type BackgroundType = 'solid' | 'gradient' | 'pattern' | 'image'
 export type PatternType = 'dots' | 'lines' | 'grid'
 
 export interface BackgroundConfig {
@@ -26,6 +26,8 @@ export interface BackgroundConfig {
   color1: string
   color2: string
   pattern: PatternType
+  image: string | null
+  imageOpacity: number
 }
 
 export type TemplateId = 'educational' | 'provocative' | 'data-trends' | 'storytelling'

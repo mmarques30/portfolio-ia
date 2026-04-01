@@ -10,9 +10,9 @@ function generateId(): string {
 
 function createDefaultSlide(index: number): Slide {
   if (index === 0) {
-    return { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '' }
+    return { id: generateId(), title: 'T\u00edtulo do Carrossel', body: 'Subt\u00edtulo ou descri\u00e7\u00e3o breve', quote: '', emoji: '' }
   }
-  return { id: generateId(), title: `Slide ${index + 1}`, body: 'Conteúdo do slide...', quote: '', emoji: '' }
+  return { id: generateId(), title: `Slide ${index + 1}`, body: 'Conte\u00fado do slide...', quote: '', emoji: '' }
 }
 
 const defaultTemplate = getTemplate('educational')
@@ -21,11 +21,11 @@ export const initialState: CarouselState = {
   id: generateId(),
   name: 'Meu Carrossel',
   slides: [
-    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨' },
-    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣' },
-    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣' },
-    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣' },
-    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉' },
+    { id: generateId(), title: 'T\u00edtulo do Carrossel', body: 'Subt\u00edtulo ou descri\u00e7\u00e3o breve', quote: '', emoji: '\u2728' },
+    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu p\u00fablico.', quote: '', emoji: '1\ufe0f\u20e3' },
+    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2\ufe0f\u20e3' },
+    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos pr\u00e1ticos ou dados.', quote: '', emoji: '3\ufe0f\u20e3' },
+    { id: generateId(), title: 'Gostou do conte\u00fado?', body: 'Salve este post e siga para mais!', quote: '', emoji: '\ud83d\udc49' },
   ],
   activeSlideIndex: 0,
   template: 'educational',
@@ -36,7 +36,7 @@ export const initialState: CarouselState = {
   showSlideNumbers: true,
   logo: null,
   ctaHandle: '@iaplicada',
-  ctaText: 'Siga para mais conteúdo',
+  ctaText: 'Siga para mais conte\u00fado',
   profileImage: null,
 }
 
@@ -60,6 +60,7 @@ type Action =
   | { type: 'SET_CTA'; payload: { handle?: string; text?: string } }
   | { type: 'LOAD_CAROUSEL'; payload: CarouselState }
   | { type: 'NEW_CAROUSEL' }
+  | { type: 'GENERATE_SLIDES'; payload: Slide[] }
 
 function carouselReducer(state: CarouselState, action: Action): CarouselState {
   switch (action.type) {
@@ -160,6 +161,9 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
 
     case 'NEW_CAROUSEL':
       return { ...initialState, id: generateId() }
+
+    case 'GENERATE_SLIDES':
+      return { ...state, slides: action.payload, activeSlideIndex: 0 }
 
     default:
       return state

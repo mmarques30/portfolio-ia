@@ -21,6 +21,8 @@ export const TEMPLATES: TemplateConfig[] = [
         color1: '#F4F2ED',
         color2: '#E8E5DC',
         pattern: 'dots',
+        image: null,
+        imageOpacity: 0.3,
       },
     },
   },
@@ -44,13 +46,15 @@ export const TEMPLATES: TemplateConfig[] = [
         color1: '#1A1A1A',
         color2: '#2A2A2A',
         pattern: 'grid',
+        image: null,
+        imageOpacity: 0.3,
       },
     },
   },
   {
     id: 'data-trends',
-    name: 'Dados & Tendências',
-    description: 'Estatísticas, comparações, números em destaque',
+    name: 'Dados & Tend\u00eancias',
+    description: 'Estat\u00edsticas, compara\u00e7\u00f5es, n\u00fameros em destaque',
     defaults: {
       colors: {
         background: '#FAFAF6',
@@ -67,13 +71,15 @@ export const TEMPLATES: TemplateConfig[] = [
         color1: '#FAFAF6',
         color2: '#F0EDE5',
         pattern: 'lines',
+        image: null,
+        imageOpacity: 0.3,
       },
     },
   },
   {
     id: 'storytelling',
     name: 'Storytelling',
-    description: 'Histórias pessoais, cases, jornadas',
+    description: 'Hist\u00f3rias pessoais, cases, jornadas',
     defaults: {
       colors: {
         background: '#FFFFFF',
@@ -90,6 +96,8 @@ export const TEMPLATES: TemplateConfig[] = [
         color1: '#FFFFFF',
         color2: '#F8F8F8',
         pattern: 'dots',
+        image: null,
+        imageOpacity: 0.3,
       },
     },
   },
@@ -98,7 +106,7 @@ export const TEMPLATES: TemplateConfig[] = [
 export const IAPLICADA_PRESETS = [
   { name: 'Sage Claro', value: '#D4DEB3' },
   { name: 'Oliva Escuro', value: '#6B7A2F' },
-  { name: 'Sage Médio', value: '#C5D1A0' },
+  { name: 'Sage M\u00e9dio', value: '#C5D1A0' },
   { name: 'Verde Amarelado', value: '#9AAD3D' },
   { name: 'Fundo Escuro', value: '#1A1A1A' },
   { name: 'Fundo Claro', value: '#F4F2ED' },

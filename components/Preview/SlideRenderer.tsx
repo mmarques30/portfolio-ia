@@ -18,6 +18,9 @@ function getBackgroundStyle(state: CarouselState): React.CSSProperties {
   if (background.type === 'gradient') {
     return { background: `linear-gradient(135deg, ${background.color1}, ${background.color2})` }
   }
+  if (background.type === 'image' && background.image) {
+    return { backgroundColor: colors.background }
+  }
   return { backgroundColor: colors.background }
 }
 
@@ -48,6 +51,31 @@ function getPatternOverlay(state: CarouselState): React.ReactNode {
   )
 }
 
+function BackgroundImage({ state }: { state: CarouselState }) {
+  if (state.background.type !== 'image' || !state.background.image) return null
+  const opacity = state.background.imageOpacity ?? 0.3
+  return (
+    <>
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `url(${state.background.image})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          opacity: opacity,
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundColor: state.colors.background,
+          opacity: 1 - opacity,
+        }}
+      />
+    </>
+  )
+}
+
 function CoverSlide({ slide, state, totalSlides }: {
   slide: Slide; state: CarouselState; totalSlides: number
 }) {
@@ -57,7 +85,6 @@ function CoverSlide({ slide, state, totalSlides }: {
 
   return (
     <div className="relative flex flex-col items-center justify-center h-full p-[80px] text-center">
-      {/* Decorative elements based on template */}
       {isEducational && (
         <div className="absolute top-[60px] left-[60px] w-[80px] h-[80px] rounded-full border-2 opacity-20"
           style={{ borderColor: state.colors.accent }} />
@@ -100,7 +127,6 @@ function CoverSlide({ slide, state, totalSlides }: {
         </p>
       )}
 
-      {/* Bottom accent line for some templates */}
       {isDataTrends && (
         <div className="absolute bottom-[80px] left-1/2 -translate-x-1/2 w-[60px] h-[3px]"
           style={{ backgroundColor: state.colors.accent }} />
@@ -119,7 +145,6 @@ function ContentSlide({ slide, slideIndex, totalSlides, state }: {
 
   return (
     <div className="relative flex flex-col justify-center h-full p-[80px]">
-      {/* Educational: step number accent */}
       {isEducational && (
         <div
           className="flex items-center justify-center w-[56px] h-[56px] rounded-full mb-[32px] font-bold text-[24px]"
@@ -133,12 +158,10 @@ function ContentSlide({ slide, slideIndex, totalSlides, state }: {
         </div>
       )}
 
-      {/* Provocative: accent bar */}
       {isProvocative && (
         <div className="w-[48px] h-[4px] mb-[32px]" style={{ backgroundColor: state.colors.accent }} />
       )}
 
-      {/* Data Trends: large number */}
       {isDataTrends && slide.emoji && (
         <div
           className="mb-[16px] font-bold leading-none"
@@ -152,7 +175,6 @@ function ContentSlide({ slide, slideIndex, totalSlides, state }: {
         </div>
       )}
 
-      {/* Storytelling: subtle quote mark */}
       {isStorytelling && slideIndex === 1 && (
         <div
           className="text-[120px] leading-none opacity-10 absolute top-[40px] left-[60px]"
@@ -206,7 +228,6 @@ function ContentSlide({ slide, slideIndex, totalSlides, state }: {
         </div>
       )}
 
-      {/* Thin separator for Data Trends */}
       {isDataTrends && (
         <div className="absolute bottom-[80px] left-[80px] w-[40px] h-[1px]"
           style={{ backgroundColor: state.colors.textSecondary + '40' }} />
@@ -225,7 +246,6 @@ function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
           style={{ backgroundColor: state.colors.accent }} />
       )}
 
-      {/* Profile image or placeholder */}
       <div
         className="w-[96px] h-[96px] rounded-full mb-[32px] flex items-center justify-center overflow-hidden"
         style={{
@@ -237,7 +257,7 @@ function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
           <img src={state.profileImage} alt="" className="w-full h-full object-cover" />
         ) : (
           <span style={{ fontSize: '40px', color: state.colors.accent }}>
-            {slide.emoji || '👤'}
+            {slide.emoji || '\ud83d\udc64'}
           </span>
         )}
       </div>
@@ -304,13 +324,13 @@ export default function SlideRenderer({
         overflow: 'hidden',
       }}
     >
+      <BackgroundImage state={state} />
       {getPatternOverlay(state)}
 
       {slideType === 'cover' && <CoverSlide slide={slide} state={state} totalSlides={totalSlides} />}
       {slideType === 'content' && <ContentSlide slide={slide} slideIndex={slideIndex} totalSlides={totalSlides} state={state} />}
       {slideType === 'cta' && <CTASlide slide={slide} state={state} />}
 
-      {/* Slide number */}
       {state.showSlideNumbers && (
         <div
           className="absolute top-[40px] right-[40px]"
@@ -325,7 +345,6 @@ export default function SlideRenderer({
         </div>
       )}
 
-      {/* Logo/watermark */}
       {state.logo && (
         <div className="absolute bottom-[32px] right-[32px]">
           <img

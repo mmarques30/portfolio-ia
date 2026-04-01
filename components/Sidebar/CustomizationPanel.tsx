@@ -10,6 +10,7 @@ import BackgroundSelector from './BackgroundSelector'
 import LogoUpload from './LogoUpload'
 import ExportPanel from './ExportPanel'
 import SlideEditor from '@/components/Editor/SlideEditor'
+import AIGenerator from './AIGenerator'
 
 interface CustomizationPanelProps {
   onExport: () => void
@@ -20,16 +21,21 @@ interface CustomizationPanelProps {
 export default function CustomizationPanel({ onExport, onExportSlide, isExporting }: CustomizationPanelProps) {
   return (
     <div className="w-72 border-l border-border bg-card flex flex-col shrink-0">
-      <Tabs defaultValue="content" className="flex flex-col flex-1 min-h-0">
+      <Tabs defaultValue="ai" className="flex flex-col flex-1 min-h-0">
         <div className="border-b border-border px-2 pt-2">
           <TabsList className="w-full h-8">
-            <TabsTrigger value="content" className="text-xs flex-1">Conteúdo</TabsTrigger>
+            <TabsTrigger value="ai" className="text-xs flex-1">Gerar</TabsTrigger>
+            <TabsTrigger value="content" className="text-xs flex-1">Conte\u00fado</TabsTrigger>
             <TabsTrigger value="design" className="text-xs flex-1">Design</TabsTrigger>
             <TabsTrigger value="export" className="text-xs flex-1">Exportar</TabsTrigger>
           </TabsList>
         </div>
 
         <ScrollArea className="flex-1">
+          <TabsContent value="ai" className="mt-0">
+            <AIGenerator />
+          </TabsContent>
+
           <TabsContent value="content" className="mt-0">
             <SlideEditor />
           </TabsContent>

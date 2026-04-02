@@ -26,7 +26,7 @@ export default function SlideEditor() {
 
   if (!slide) return null
 
-  function update(field: string, value: string | null) {
+  function update(field: string, value: string | number | null) {
     dispatch({ type: 'UPDATE_SLIDE', payload: { index: activeSlideIndex, slide: { [field]: value } } })
   }
 
@@ -49,30 +49,23 @@ export default function SlideEditor() {
     if (selected.length === 0) return
     const newText = text.substring(0, start) + wrapper + selected + wrapper + text.substring(end)
     update('body', newText)
-    setTimeout(() => {
-      textarea.focus()
-      textarea.setSelectionRange(start + wrapper.length, end + wrapper.length)
-    }, 0)
+    setTimeout(() => { textarea.focus(); textarea.setSelectionRange(start + wrapper.length, end + wrapper.length) }, 0)
   }
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {slideType === 'cover' ? 'Capa' : slideType === 'cta' ? 'Slide Final (CTA)' : `Slide ${activeSlideIndex + 1}`}
         </span>
         {slides.length > 1 && (
-          <button
-            onClick={() => dispatch({ type: 'REMOVE_SLIDE', payload: activeSlideIndex })}
-            className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
-            title="Excluir slide"
-          >
+          <button onClick={() => dispatch({ type: 'REMOVE_SLIDE', payload: activeSlideIndex })} className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors" title="Excluir slide">
             <Trash2 className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Per-slide image - FIRST, most visible */}
+      {/* Per-slide image */}
       <div className="space-y-2">
         <div className="flex items-center gap-1.5">
           <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />
@@ -81,23 +74,37 @@ export default function SlideEditor() {
         {slide.image ? (
           <div className="space-y-2">
             <div className="relative rounded-md overflow-hidden border border-border">
-              <img src={slide.image} alt="" className="w-full h-24 object-cover" />
-              <button
-                onClick={() => update('image', null)}
-                className="absolute top-1 right-1 p-1 rounded-md bg-black/50 hover:bg-black/70 text-white"
-              >
+              <img src={slide.image} alt="" className="w-full h-20 object-cover" />
+              <button onClick={() => update('image', null)} className="absolute top-1 right-1 p-1 rounded-md bg-black/50 hover:bg-black/70 text-white">
                 <X className="w-3 h-3" />
               </button>
             </div>
+
+            {/* Image opacity */}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Opacidade da imagem</Label>
+              <div className="flex items-center gap-2">
+                <input type="range" min={10} max={100} value={Math.round((slide.imageOpacity ?? 0.5) * 100)} onChange={e => update('imageOpacity', Number(e.target.value) / 100)} className="flex-1 accent-primary" />
+                <span className="text-[10px] text-muted-foreground w-7 text-right">{Math.round((slide.imageOpacity ?? 0.5) * 100)}%</span>
+              </div>
+            </div>
+
+            {/* Image overlay color */}
+            <div className="space-y-1">
+              <Label className="text-[10px] text-muted-foreground">Cor do overlay</Label>
+              <div className="flex items-center gap-2">
+                <input type="color" value={slide.imageOverlayColor || '#000000'} onChange={e => update('imageOverlayColor', e.target.value)} className="w-6 h-6 rounded border border-border cursor-pointer appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded [&::-webkit-color-swatch]:border-none" />
+                <span className="text-[10px] text-muted-foreground">Sobre a imagem</span>
+              </div>
+            </div>
+
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
-              <Upload className="w-3.5 h-3.5" />
-              Trocar imagem
+              <Upload className="w-3.5 h-3.5" /> Trocar imagem
             </Button>
           </div>
         ) : (
           <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
-            <Upload className="w-3.5 h-3.5" />
-            Adicionar imagem (só neste slide)
+            <Upload className="w-3.5 h-3.5" /> Adicionar imagem (só neste slide)
           </Button>
         )}
         <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -105,24 +112,34 @@ export default function SlideEditor() {
 
       <div className="border-t border-border" />
 
+      {/* Text colors for this slide */}
+      <div className="space-y-2">
+        <Label className="text-xs font-semibold">Cores do texto (este slide)</Label>
+        <div className="flex gap-3">
+          <div className="flex items-center gap-1.5">
+            <input type="color" value={slide.textColor || state.colors.text} onChange={e => update('textColor', e.target.value)} className="w-6 h-6 rounded border border-border cursor-pointer appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded [&::-webkit-color-swatch]:border-none" />
+            <span className="text-[10px] text-muted-foreground">Título</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <input type="color" value={slide.textSecondaryColor || state.colors.textSecondary} onChange={e => update('textSecondaryColor', e.target.value)} className="w-6 h-6 rounded border border-border cursor-pointer appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded [&::-webkit-color-swatch]:border-none" />
+            <span className="text-[10px] text-muted-foreground">Corpo</span>
+          </div>
+          {(slide.textColor || slide.textSecondaryColor) && (
+            <button onClick={() => { update('textColor', null); update('textSecondaryColor', null) }} className="text-[10px] text-muted-foreground hover:text-foreground underline">Resetar</button>
+          )}
+        </div>
+      </div>
+
+      <div className="border-t border-border" />
+
       <div className="space-y-2">
         <Label className="text-xs">Emoji / Ícone</Label>
-        <Input
-          value={slide.emoji}
-          onChange={e => update('emoji', e.target.value)}
-          placeholder="Ex: ✨ 🚀 1️⃣"
-          className="h-9 text-sm"
-        />
+        <Input value={slide.emoji} onChange={e => update('emoji', e.target.value)} placeholder="Ex: ✨ 🚀 1️⃣" className="h-9 text-sm" />
       </div>
 
       <div className="space-y-2">
         <Label className="text-xs">Título</Label>
-        <Input
-          value={slide.title}
-          onChange={e => update('title', e.target.value)}
-          placeholder="Título do slide"
-          className="h-9 text-sm"
-        />
+        <Input value={slide.title} onChange={e => update('title', e.target.value)} placeholder="Título do slide" className="h-9 text-sm" />
       </div>
 
       <div className="space-y-2">
@@ -130,40 +147,21 @@ export default function SlideEditor() {
           {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
         </Label>
         <div className="flex items-center gap-1 mb-1">
-          <button
-            onClick={() => wrapSelection('**')}
-            className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            title="Negrito"
-          >
+          <button onClick={() => wrapSelection('**')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Negrito">
             <Bold className="w-3.5 h-3.5" />
           </button>
-          <button
-            onClick={() => wrapSelection('*')}
-            className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            title="Itálico"
-          >
+          <button onClick={() => wrapSelection('*')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Itálico">
             <Italic className="w-3.5 h-3.5" />
           </button>
           <span className="text-[10px] text-muted-foreground ml-1">Selecione texto + B ou I</span>
         </div>
-        <Textarea
-          ref={bodyRef}
-          value={slide.body}
-          onChange={e => update('body', e.target.value)}
-          placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.'}
-          className="text-sm min-h-[100px] resize-y"
-        />
+        <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" />
       </div>
 
       {slideType === 'content' && (
         <div className="space-y-2">
           <Label className="text-xs">Destaque / Citação (opcional)</Label>
-          <Textarea
-            value={slide.quote}
-            onChange={e => update('quote', e.target.value)}
-            placeholder="Texto em destaque..."
-            className="text-sm min-h-[50px] resize-y"
-          />
+          <Textarea value={slide.quote} onChange={e => update('quote', e.target.value)} placeholder="Texto em destaque..." className="text-sm min-h-[50px] resize-y" />
         </div>
       )}
 
@@ -171,21 +169,11 @@ export default function SlideEditor() {
         <>
           <div className="space-y-2">
             <Label className="text-xs">Arroba do perfil</Label>
-            <Input
-              value={state.ctaHandle}
-              onChange={e => dispatch({ type: 'SET_CTA', payload: { handle: e.target.value } })}
-              placeholder="@seuperfil"
-              className="h-9 text-sm"
-            />
+            <Input value={state.ctaHandle} onChange={e => dispatch({ type: 'SET_CTA', payload: { handle: e.target.value } })} placeholder="@seuperfil" className="h-9 text-sm" />
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Texto de CTA</Label>
-            <Input
-              value={state.ctaText}
-              onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })}
-              placeholder="Siga para mais conteúdo"
-              className="h-9 text-sm"
-            />
+            <Input value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conteúdo" className="h-9 text-sm" />
           </div>
         </>
       )}
@@ -197,18 +185,8 @@ export default function SlideEditor() {
         <Label className="text-xs">Posição do texto</Label>
         <div className="flex gap-1">
           {([['top', ArrowUp, 'Topo'], ['center', Minus, 'Centro'], ['bottom', ArrowDown, 'Base']] as const).map(([pos, Icon, label]) => (
-            <button
-              key={pos}
-              onClick={() => update('textPosition', pos)}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-md border transition-colors',
-                slide.textPosition === pos
-                  ? 'border-primary bg-primary/10 text-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Icon className="w-3 h-3" />
-              {label}
+            <button key={pos} onClick={() => update('textPosition', pos)} className={cn('flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-md border transition-colors', slide.textPosition === pos ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}>
+              <Icon className="w-3 h-3" /> {label}
             </button>
           ))}
         </div>
@@ -218,18 +196,9 @@ export default function SlideEditor() {
       <div className="space-y-2">
         <Label className="text-xs">Alinhamento</Label>
         <div className="flex gap-1">
-          {([['left', AlignLeft, 'Esquerda'], ['center', AlignCenter, 'Centro'], ['right', AlignRight, 'Direita']] as const).map(([align, Icon, label]) => (
-            <button
-              key={align}
-              onClick={() => update('textAlign', align)}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1 text-xs py-1.5 rounded-md border transition-colors',
-                slide.textAlign === align
-                  ? 'border-primary bg-primary/10 text-foreground'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Icon className="w-3 h-3" />
+          {([['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight]] as const).map(([align, Icon]) => (
+            <button key={align} onClick={() => update('textAlign', align)} className={cn('flex-1 flex items-center justify-center text-xs py-1.5 rounded-md border transition-colors', slide.textAlign === align ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground hover:text-foreground')}>
+              <Icon className="w-3.5 h-3.5" />
             </button>
           ))}
         </div>

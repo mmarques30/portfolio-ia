@@ -10,9 +10,9 @@ function generateId(): string {
 
 function createDefaultSlide(index: number): Slide {
   if (index === 0) {
-    return { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '', image: null, textPosition: 'center', textAlign: 'center' }
+    return { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' }
   }
-  return { id: generateId(), title: `Slide ${index + 1}`, body: 'Conteúdo do slide...', quote: '', emoji: '', image: null, textPosition: 'center', textAlign: 'left' }
+  return { id: generateId(), title: `Slide ${index + 1}`, body: 'Conteúdo do slide...', quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' }
 }
 
 const defaultTemplate = getTemplate('educational')
@@ -21,11 +21,11 @@ export const initialState: CarouselState = {
   id: generateId(),
   name: 'Meu Carrossel',
   slides: [
-    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨', image: null, textPosition: 'center', textAlign: 'center' },
-    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣', image: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣', image: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣', image: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉', image: null, textPosition: 'center', textAlign: 'center' },
+    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' },
+    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
+    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
+    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
+    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' },
   ],
   activeSlideIndex: 0,
   template: 'educational',
@@ -64,10 +64,8 @@ type Action =
 
 function carouselReducer(state: CarouselState, action: Action): CarouselState {
   switch (action.type) {
-    case 'SET_NAME':
-      return { ...state, name: action.payload }
-    case 'SET_SLIDES':
-      return { ...state, slides: action.payload }
+    case 'SET_NAME': return { ...state, name: action.payload }
+    case 'SET_SLIDES': return { ...state, slides: action.payload }
     case 'ADD_SLIDE': {
       if (state.slides.length >= 15) return state
       const newSlide = createDefaultSlide(state.slides.length)
@@ -79,8 +77,7 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
     case 'REMOVE_SLIDE': {
       if (state.slides.length <= 1) return state
       const slides = state.slides.filter((_, i) => i !== action.payload)
-      const activeIndex = Math.min(state.activeSlideIndex, slides.length - 1)
-      return { ...state, slides, activeSlideIndex: activeIndex }
+      return { ...state, slides, activeSlideIndex: Math.min(state.activeSlideIndex, slides.length - 1) }
     }
     case 'UPDATE_SLIDE': {
       const { index, slide } = action.payload
@@ -107,53 +104,32 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
       slides.splice(action.payload + 1, 0, duplicate)
       return { ...state, slides, activeSlideIndex: action.payload + 1 }
     }
-    case 'SET_ACTIVE_SLIDE':
-      return { ...state, activeSlideIndex: Math.max(0, Math.min(action.payload, state.slides.length - 1)) }
+    case 'SET_ACTIVE_SLIDE': return { ...state, activeSlideIndex: Math.max(0, Math.min(action.payload, state.slides.length - 1)) }
     case 'SET_TEMPLATE': {
       const template = getTemplate(action.payload)
       return { ...state, template: action.payload, colors: { ...template.defaults.colors }, fonts: { ...template.defaults.fonts }, background: { ...template.defaults.background } }
     }
-    case 'SET_FORMAT':
-      return { ...state, format: action.payload }
-    case 'SET_COLORS':
-      return { ...state, colors: { ...state.colors, ...action.payload } }
-    case 'SET_FONTS':
-      return { ...state, fonts: { ...state.fonts, ...action.payload } }
-    case 'SET_BACKGROUND':
-      return { ...state, background: { ...state.background, ...action.payload } }
-    case 'SET_SHOW_SLIDE_NUMBERS':
-      return { ...state, showSlideNumbers: action.payload }
-    case 'SET_LOGO':
-      return { ...state, logo: action.payload }
-    case 'SET_PROFILE_IMAGE':
-      return { ...state, profileImage: action.payload }
-    case 'SET_CTA':
-      return { ...state, ctaHandle: action.payload.handle ?? state.ctaHandle, ctaText: action.payload.text ?? state.ctaText }
-    case 'LOAD_CAROUSEL':
-      return { ...action.payload }
-    case 'NEW_CAROUSEL':
-      return { ...initialState, id: generateId() }
-    case 'GENERATE_SLIDES':
-      return { ...state, slides: action.payload, activeSlideIndex: 0 }
-    default:
-      return state
+    case 'SET_FORMAT': return { ...state, format: action.payload }
+    case 'SET_COLORS': return { ...state, colors: { ...state.colors, ...action.payload } }
+    case 'SET_FONTS': return { ...state, fonts: { ...state.fonts, ...action.payload } }
+    case 'SET_BACKGROUND': return { ...state, background: { ...state.background, ...action.payload } }
+    case 'SET_SHOW_SLIDE_NUMBERS': return { ...state, showSlideNumbers: action.payload }
+    case 'SET_LOGO': return { ...state, logo: action.payload }
+    case 'SET_PROFILE_IMAGE': return { ...state, profileImage: action.payload }
+    case 'SET_CTA': return { ...state, ctaHandle: action.payload.handle ?? state.ctaHandle, ctaText: action.payload.text ?? state.ctaText }
+    case 'LOAD_CAROUSEL': return { ...action.payload }
+    case 'NEW_CAROUSEL': return { ...initialState, id: generateId() }
+    case 'GENERATE_SLIDES': return { ...state, slides: action.payload, activeSlideIndex: 0 }
+    default: return state
   }
 }
 
-interface CarouselContextType {
-  state: CarouselState
-  dispatch: React.Dispatch<Action>
-}
-
+interface CarouselContextType { state: CarouselState; dispatch: React.Dispatch<Action> }
 const CarouselContext = createContext<CarouselContextType | null>(null)
 
 export function CarouselProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(carouselReducer, initialState)
-  return (
-    <CarouselContext.Provider value={{ state, dispatch }}>
-      {children}
-    </CarouselContext.Provider>
-  )
+  return <CarouselContext.Provider value={{ state, dispatch }}>{children}</CarouselContext.Provider>
 }
 
 export function useCarousel() {

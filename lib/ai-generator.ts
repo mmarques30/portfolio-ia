@@ -32,27 +32,19 @@ function extractTitleAndBody(text: string): { title: string; body: string } {
 }
 
 const TOPIC_TITLES = [
-  'Você sabia disso?',
-  'O ponto principal',
-  'Na prática...',
-  'O segredo é...',
-  'Dica extra',
-  'Resumindo',
-  'A verdade é que...',
-  'O erro mais comum',
-  'Como aplicar',
-  'Resultado final',
+  'Você sabia disso?', 'O ponto principal', 'Na prática...', 'O segredo é...',
+  'Dica extra', 'Resumindo', 'A verdade é que...', 'O erro mais comum',
+  'Como aplicar', 'Resultado final',
 ]
 
 const SLIDE_EMOJIS = ['✨', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
 
 function makeSlide(title: string, body: string, emoji: string, isCover = false): Slide {
   return {
-    id: generateId(),
-    title, body, quote: '', emoji,
-    image: null,
-    textPosition: 'center',
-    textAlign: isCover ? 'center' : 'left',
+    id: generateId(), title, body, quote: '', emoji,
+    image: null, imageOpacity: 0.5, imageOverlayColor: '#000000',
+    textColor: null, textSecondaryColor: null,
+    textPosition: 'center', textAlign: isCover ? 'center' : 'left',
   }
 }
 
@@ -66,7 +58,6 @@ export function generateCarouselSlides(options: GenerateOptions): Slide[] {
 function generateFromScript(script: string, totalSlides: number): Slide[] {
   const paragraphs = splitIntoParagraphs(script)
   const slides: Slide[] = []
-
   if (paragraphs.length === 0) return generateFromTopic('Meu Carrossel', totalSlides)
 
   const cover = extractTitleAndBody(paragraphs[0])
@@ -74,7 +65,6 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
 
   const contentCount = totalSlides - 2
   const contentParagraphs = paragraphs.slice(1)
-
   if (contentParagraphs.length >= contentCount) {
     const step = contentParagraphs.length / contentCount
     for (let i = 0; i < contentCount; i++) {
@@ -92,7 +82,6 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
       }
     }
   }
-
   slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', true))
   return slides
 }
@@ -100,12 +89,10 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
 function generateFromTopic(topic: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
   slides.push(makeSlide(topic || 'Título do Carrossel', 'Deslize para saber mais →', '✨', true))
-
   const contentCount = totalSlides - 2
   for (let i = 0; i < contentCount; i++) {
     slides.push(makeSlide(TOPIC_TITLES[i % TOPIC_TITLES.length], `Desenvolva o ponto ${i + 1} sobre "${topic}" aqui...`, SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]))
   }
-
   slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', true))
   return slides
 }

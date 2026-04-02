@@ -5,6 +5,10 @@ export interface Slide {
   quote: string
   emoji: string
   image: string | null
+  imageOpacity: number
+  imageOverlayColor: string
+  textColor: string | null
+  textSecondaryColor: string | null
   textPosition: 'top' | 'center' | 'bottom'
   textAlign: 'left' | 'center' | 'right'
 }

@@ -21,8 +21,8 @@ interface CustomizationPanelProps {
 
 export default function CustomizationPanel({ onExport, onExportSlide, isExporting }: CustomizationPanelProps) {
   return (
-    <div className="w-96 min-w-[384px] max-w-[384px] border-l border-border bg-card flex flex-col shrink-0 overflow-hidden">
-      <Tabs defaultValue="ai" className="flex flex-col flex-1 min-h-0">
+    <div style={{ width: '420px', minWidth: '420px', maxWidth: '420px' }} className="border-l border-border bg-card flex flex-col shrink-0 overflow-hidden">
+      <Tabs defaultValue="ai" className="flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="border-b border-border px-3 pt-2">
           <TabsList className="w-full h-9 grid grid-cols-4">
             <TabsTrigger value="ai" className="text-xs gap-1 px-1">
@@ -44,8 +44,8 @@ export default function CustomizationPanel({ onExport, onExportSlide, isExportin
           </TabsList>
         </div>
 
-        <ScrollArea className="flex-1">
-          <div className="max-w-full overflow-hidden">
+        <ScrollArea className="flex-1 overflow-hidden">
+          <div style={{ width: '420px', maxWidth: '420px', boxSizing: 'border-box' }}>
             <TabsContent value="ai" className="mt-0">
               <AIGenerator />
             </TabsContent>

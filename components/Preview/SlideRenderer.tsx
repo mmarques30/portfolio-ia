@@ -48,16 +48,21 @@ function getPatternOverlay(state: CarouselState): React.ReactNode {
     lines: { backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 23px, ${color} 23px, ${color} 24px)` },
     grid: { backgroundImage: `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`, backgroundSize: '40px 40px' },
   }
-  return <div className="absolute inset-0 pointer-events-none" style={patterns[state.background.pattern] || {}} />
+  return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', ...(patterns[state.background.pattern] || {}) }} />
 }
 
+// Use <img> tags instead of CSS backgroundImage for html-to-image compatibility
 function GlobalBackgroundImage({ state }: { state: CarouselState }) {
   if (state.background.type !== 'image' || !state.background.image) return null
   const opacity = state.background.imageOpacity ?? 0.3
   return (
     <>
-      <div className="absolute inset-0" style={{ backgroundImage: `url(${state.background.image})`, backgroundSize: 'cover', backgroundPosition: 'center', opacity }} />
-      <div className="absolute inset-0" style={{ backgroundColor: state.colors.background, opacity: 1 - opacity }} />
+      <img
+        src={state.background.image}
+        alt=""
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity, display: 'block' }}
+      />
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: state.colors.background, opacity: 1 - opacity }} />
     </>
   )
 }
@@ -68,8 +73,12 @@ function SlideBackgroundImage({ slide }: { slide: Slide }) {
   const overlayColor = slide.imageOverlayColor || '#000000'
   return (
     <>
-      <div className="absolute inset-0" style={{ backgroundImage: `url(${slide.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
-      <div className="absolute inset-0" style={{ backgroundColor: overlayColor, opacity: 1 - opacity }} />
+      <img
+        src={slide.image}
+        alt=""
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      />
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: overlayColor, opacity: 1 - opacity }} />
     </>
   )
 }
@@ -100,9 +109,9 @@ function CoverSlide({ slide, state }: { slide: Slide; state: CarouselState }) {
   const subColor = getSubColor(slide, state)
 
   return (
-    <div className="relative flex flex-col items-center h-full p-[80px]" style={{ textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
-      {slide.emoji && <div className="mb-[32px] text-[64px] leading-none">{slide.emoji}</div>}
-      <h1 className="leading-[1.1] font-bold mb-[24px] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '72px' : '56px', color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
+      {slide.emoji && <div style={{ marginBottom: '32px', fontSize: '64px', lineHeight: 1 }}>{slide.emoji}</div>}
+      <h1 style={{ lineHeight: 1.1, fontWeight: 'bold', marginBottom: '24px', width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '72px' : '56px', color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
         <FormattedText text={slide.title} />
       </h1>
       {slide.body && (
@@ -123,22 +132,21 @@ function ContentSlide({ slide, slideIndex, state }: { slide: Slide; slideIndex: 
   const accentColor = slide.image ? (slide.textColor || '#FFFFFF') : state.colors.accent
 
   return (
-    <div className="relative flex flex-col h-full p-[80px]" style={{ textAlign: (slide.textAlign || 'left') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'left') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
       {isEducational && !slide.image && (
-        <div className="flex items-center justify-center w-[56px] h-[56px] rounded-full mb-[32px] font-bold text-[24px]" style={{ backgroundColor: state.colors.accent + '20', color: state.colors.accent, fontFamily: getFontFamily(state.fonts.heading) }}>{slideIndex}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '56px', height: '56px', borderRadius: '50%', marginBottom: '32px', fontWeight: 'bold', fontSize: '24px', backgroundColor: state.colors.accent + '20', color: state.colors.accent, fontFamily: getFontFamily(state.fonts.heading) }}>{slideIndex}</div>
       )}
-      {isProvocative && !slide.image && <div className="w-[48px] h-[4px] mb-[32px]" style={{ backgroundColor: state.colors.accent }} />}
-      {isDataTrends && slide.emoji && <div className="mb-[16px] font-bold leading-none" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: '80px', color: accentColor }}>{slide.emoji}</div>}
-      {(!isDataTrends || !slide.emoji) && slide.emoji && <div className="mb-[20px] text-[40px] leading-none">{slide.emoji}</div>}
-
-      <h2 className="font-bold mb-[20px] leading-[1.15] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '48px' : isDataTrends ? '40px' : '36px', color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
+      {isProvocative && !slide.image && <div style={{ width: '48px', height: '4px', marginBottom: '32px', backgroundColor: state.colors.accent }} />}
+      {isDataTrends && slide.emoji && <div style={{ marginBottom: '16px', fontWeight: 'bold', lineHeight: 1, fontFamily: getFontFamily(state.fonts.heading), fontSize: '80px', color: accentColor }}>{slide.emoji}</div>}
+      {(!isDataTrends || !slide.emoji) && slide.emoji && <div style={{ marginBottom: '20px', fontSize: '40px', lineHeight: 1 }}>{slide.emoji}</div>}
+      <h2 style={{ fontWeight: 'bold', marginBottom: '20px', lineHeight: 1.15, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '48px' : isDataTrends ? '40px' : '36px', color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
         <FormattedText text={slide.title} />
       </h2>
-      <div className="leading-[1.7] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}>
+      <div style={{ lineHeight: 1.7, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}>
         <FormattedText text={slide.body} />
       </div>
       {slide.quote && (
-        <div className="mt-[32px] pl-[20px] border-l-[3px] w-full" style={{ borderColor: accentColor, fontFamily: getFontFamily(state.fonts.body), fontSize: '18px', color: textColor, fontStyle: isDataTrends ? 'italic' : 'normal', lineHeight: 1.6 }}>
+        <div style={{ marginTop: '32px', paddingLeft: '20px', borderLeft: `3px solid ${accentColor}`, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: '18px', color: textColor, fontStyle: isDataTrends ? 'italic' : 'normal', lineHeight: 1.6 }}>
           <FormattedText text={slide.quote} />
         </div>
       )}
@@ -151,18 +159,18 @@ function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
   const subColor = getSubColor(slide, state)
 
   return (
-    <div className="relative flex flex-col items-center h-full p-[80px]" style={{ textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
-      <div className="mb-[32px] flex-shrink-0" style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', backgroundColor: state.colors.accent + '20', border: `3px solid ${state.colors.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
+      <div style={{ width: '96px', height: '96px', borderRadius: '50%', marginBottom: '32px', flexShrink: 0, overflow: 'hidden', backgroundColor: state.colors.accent + '20', border: `3px solid ${state.colors.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {state.profileImage ? (
           <img src={state.profileImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         ) : (
           <span style={{ fontSize: '40px', color: state.colors.accent, lineHeight: 1 }}>{slide.emoji || '👤'}</span>
         )}
       </div>
-      <h2 className="font-bold mb-[16px] leading-[1.2] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: '40px', color: textColor, letterSpacing: '-1px' }}>
+      <h2 style={{ fontWeight: 'bold', marginBottom: '16px', lineHeight: 1.2, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: '40px', color: textColor, letterSpacing: '-1px' }}>
         <FormattedText text={slide.title} />
       </h2>
-      <div className="mb-[32px] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}>
+      <div style={{ marginBottom: '32px', width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}>
         <FormattedText text={state.ctaText || slide.body} />
       </div>
       <div style={{ padding: '14px 32px', borderRadius: '9999px', fontWeight: 600, backgroundColor: state.colors.accent, color: state.colors.background, fontFamily: getFontFamily(state.fonts.body), fontSize: '20px' }}>
@@ -184,12 +192,12 @@ export default function SlideRenderer({ slide, slideIndex, totalSlides, state, s
       {slideType === 'content' && <ContentSlide slide={slide} slideIndex={slideIndex} state={state} />}
       {slideType === 'cta' && <CTASlide slide={slide} state={state} />}
       {state.showSlideNumbers && (
-        <div className="absolute top-[40px] right-[40px]" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '16px', color: (slide.image ? '#FFFFFF80' : state.colors.textSecondary + '80'), fontWeight: 500 }}>
+        <div style={{ position: 'absolute', top: '40px', right: '40px', fontFamily: getFontFamily(state.fonts.body), fontSize: '16px', color: slide.image ? '#FFFFFF80' : state.colors.textSecondary + '80', fontWeight: 500 }}>
           {String(slideIndex + 1).padStart(2, '0')}/{String(totalSlides).padStart(2, '0')}
         </div>
       )}
       {state.logo && (
-        <div className="absolute bottom-[32px] right-[32px]">
+        <div style={{ position: 'absolute', bottom: '32px', right: '32px' }}>
           <img src={state.logo} alt="" style={{ height: '32px', width: 'auto', opacity: 0.6 }} />
         </div>
       )}

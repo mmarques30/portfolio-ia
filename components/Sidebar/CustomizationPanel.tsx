@@ -21,7 +21,7 @@ interface CustomizationPanelProps {
 
 export default function CustomizationPanel({ onExport, onExportSlide, isExporting }: CustomizationPanelProps) {
   return (
-    <div className="w-80 border-l border-border bg-card flex flex-col shrink-0">
+    <div className="w-96 border-l border-border bg-card flex flex-col shrink-0">
       <Tabs defaultValue="ai" className="flex flex-col flex-1 min-h-0">
         <div className="border-b border-border px-3 pt-2">
           <TabsList className="w-full h-9 grid grid-cols-4">

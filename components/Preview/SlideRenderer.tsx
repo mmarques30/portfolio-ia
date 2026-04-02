@@ -3,7 +3,6 @@
 import React from 'react'
 import { Slide, CarouselState, SlideType } from '@/lib/types'
 import { getFontFamily } from '@/lib/fonts'
-import { renderFormattedText } from '@/lib/text-formatter'
 
 interface SlideRendererProps {
   slide: Slide
@@ -12,6 +11,50 @@ interface SlideRendererProps {
   state: CarouselState
   slideType: SlideType
   scale?: number
+}
+
+// Inline text formatter - supports **bold**, *italic*, and newlines
+function FormattedText({ text, style }: { text: string; style?: React.CSSProperties }) {
+  if (!text) return null
+
+  const lines = text.split('\n')
+
+  function parseLine(line: string, lineKey: number): React.ReactNode {
+    const parts: React.ReactNode[] = []
+    const regex = /(\*\*(.+?)\*\*|\*(.+?)\*)/g
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+    let key = 0
+
+    while ((match = regex.exec(line)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(<React.Fragment key={`t${lineKey}-${key++}`}>{line.substring(lastIndex, match.index)}</React.Fragment>)
+      }
+      if (match[2]) {
+        parts.push(<strong key={`b${lineKey}-${key++}`}>{match[2]}</strong>)
+      } else if (match[3]) {
+        parts.push(<em key={`i${lineKey}-${key++}`}>{match[3]}</em>)
+      }
+      lastIndex = match.index + match[0].length
+    }
+
+    if (lastIndex < line.length) {
+      parts.push(<React.Fragment key={`e${lineKey}-${key++}`}>{line.substring(lastIndex)}</React.Fragment>)
+    }
+
+    return parts.length > 0 ? parts : line
+  }
+
+  return (
+    <span style={style}>
+      {lines.map((line, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && <br />}
+          {parseLine(line, i)}
+        </React.Fragment>
+      ))}
+    </span>
+  )
 }
 
 function getBackgroundStyle(state: CarouselState): React.CSSProperties {
@@ -75,12 +118,12 @@ function CoverSlide({ slide, state }: { slide: Slide; state: CarouselState }) {
         className="leading-[1.1] font-bold mb-[24px] w-full"
         style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '72px' : '56px', color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}
       >
-        {renderFormattedText(slide.title)}
+        <FormattedText text={slide.title} />
       </h1>
       {slide.body && (
-        <p style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '24px', color: subColor, lineHeight: 1.5, maxWidth: '90%' }}>
-          {renderFormattedText(slide.body)}
-        </p>
+        <div style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '24px', color: subColor, lineHeight: 1.5, maxWidth: '90%' }}>
+          <FormattedText text={slide.body} />
+        </div>
       )}
     </div>
   )
@@ -109,14 +152,14 @@ function ContentSlide({ slide, slideIndex, state }: { slide: Slide; slideIndex: 
       {(!isDataTrends || !slide.emoji) && slide.emoji && <div className="mb-[20px] text-[40px] leading-none">{slide.emoji}</div>}
 
       <h2 className="font-bold mb-[20px] leading-[1.15] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '48px' : isDataTrends ? '40px' : '36px', color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
-        {renderFormattedText(slide.title)}
+        <FormattedText text={slide.title} />
       </h2>
       <div className="leading-[1.7] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}>
-        {renderFormattedText(slide.body)}
+        <FormattedText text={slide.body} />
       </div>
       {slide.quote && (
         <div className="mt-[32px] pl-[20px] border-l-[3px] w-full" style={{ borderColor: accentColor, fontFamily: getFontFamily(state.fonts.body), fontSize: '18px', color: textColor, fontStyle: isDataTrends ? 'italic' : 'normal', lineHeight: 1.6 }}>
-          {renderFormattedText(slide.quote)}
+          <FormattedText text={slide.quote} />
         </div>
       )}
     </div>
@@ -130,20 +173,33 @@ function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
 
   return (
     <div className="relative flex flex-col items-center h-full p-[80px]" style={{ textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center') }}>
-      <div className="w-[96px] h-[96px] rounded-full mb-[32px] flex items-center justify-center overflow-hidden" style={{ backgroundColor: state.colors.accent + '20', border: `3px solid ${state.colors.accent}` }}>
+      {/* Profile image */}
+      <div
+        className="mb-[32px] flex-shrink-0"
+        style={{ width: '96px', height: '96px', borderRadius: '50%', overflow: 'hidden', backgroundColor: state.colors.accent + '20', border: `3px solid ${state.colors.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
         {state.profileImage ? (
-          <img src={state.profileImage} alt="" className="w-full h-full object-cover" />
+          <img
+            src={state.profileImage}
+            alt=""
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
         ) : (
-          <span style={{ fontSize: '40px', color: state.colors.accent }}>{slide.emoji || '👤'}</span>
+          <span style={{ fontSize: '40px', color: state.colors.accent, lineHeight: 1 }}>
+            {slide.emoji || '👤'}
+          </span>
         )}
       </div>
+
       <h2 className="font-bold mb-[16px] leading-[1.2] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: '40px', color: textColor, letterSpacing: '-1px' }}>
-        {renderFormattedText(slide.title)}
+        <FormattedText text={slide.title} />
       </h2>
-      <p className="mb-[32px] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}>
-        {renderFormattedText(state.ctaText || slide.body)}
-      </p>
-      <div className="px-[32px] py-[14px] rounded-full font-semibold" style={{ backgroundColor: state.colors.accent, color: state.colors.background, fontFamily: getFontFamily(state.fonts.body), fontSize: '20px' }}>
+      <div className="mb-[32px] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}>
+        <FormattedText text={state.ctaText || slide.body} />
+      </div>
+      <div
+        style={{ padding: '14px 32px', borderRadius: '9999px', fontWeight: 600, backgroundColor: state.colors.accent, color: state.colors.background, fontFamily: getFontFamily(state.fonts.body), fontSize: '20px' }}
+      >
         {state.ctaHandle}
       </div>
     </div>

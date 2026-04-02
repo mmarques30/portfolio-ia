@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { SlideType } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2 } from 'lucide-react'
+import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
   if (index === 0) return 'cover'
@@ -22,6 +22,7 @@ export default function SlideEditor() {
   const slide = slides[activeSlideIndex]
   const slideType = getSlideType(activeSlideIndex, slides.length)
   const imageInputRef = useRef<HTMLInputElement>(null)
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
 
   if (!slide) return null
 
@@ -36,6 +37,23 @@ export default function SlideEditor() {
     reader.onload = () => update('image', reader.result as string)
     reader.readAsDataURL(file)
     e.target.value = ''
+  }
+
+  function wrapSelection(wrapper: '**' | '*') {
+    const textarea = bodyRef.current
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const text = slide.body
+    const selected = text.substring(start, end)
+    if (selected.length === 0) return
+    const newText = text.substring(0, start) + wrapper + selected + wrapper + text.substring(end)
+    update('body', newText)
+    // Restore cursor position after React re-render
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + wrapper.length, end + wrapper.length)
+    }, 0)
   }
 
   return (
@@ -76,26 +94,39 @@ export default function SlideEditor() {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs">
-            {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
-          </Label>
-          <span className="text-[10px] text-muted-foreground">**negrito** *itálico*</span>
+        <Label className="text-xs">
+          {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
+        </Label>
+        {/* Formatting toolbar */}
+        <div className="flex items-center gap-1 mb-1">
+          <button
+            onClick={() => wrapSelection('**')}
+            className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title="Negrito (selecione o texto primeiro)"
+          >
+            <Bold className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => wrapSelection('*')}
+            className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title="Itálico (selecione o texto primeiro)"
+          >
+            <Italic className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-[10px] text-muted-foreground ml-1">Selecione texto e clique B ou I</span>
         </div>
         <Textarea
+          ref={bodyRef}
           value={slide.body}
           onChange={e => update('body', e.target.value)}
-          placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.\nUse **texto** para negrito e *texto* para itálico.'}
+          placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.'}
           className="text-sm min-h-[100px] resize-y"
         />
       </div>
 
       {slideType === 'content' && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label className="text-xs">Destaque / Citação (opcional)</Label>
-            <span className="text-[10px] text-muted-foreground">**negrito**</span>
-          </div>
+          <Label className="text-xs">Destaque / Citação (opcional)</Label>
           <Textarea
             value={slide.quote}
             onChange={e => update('quote', e.target.value)}

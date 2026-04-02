@@ -8,6 +8,7 @@ interface GenerateOptions {
   mode: 'topic' | 'script'
   input: string
   slideCount: number
+  isSingleAd?: boolean
 }
 
 function splitIntoParagraphs(text: string): string[] {
@@ -49,10 +50,27 @@ function makeSlide(title: string, body: string, emoji: string, isCover = false):
 }
 
 export function generateCarouselSlides(options: GenerateOptions): Slide[] {
-  const { mode, input, slideCount } = options
+  const { mode, input, slideCount, isSingleAd } = options
+
+  if (isSingleAd) {
+    return generateSingleAd(input)
+  }
+
   const totalSlides = Math.max(3, Math.min(15, slideCount))
   if (mode === 'script') return generateFromScript(input, totalSlides)
   return generateFromTopic(input, totalSlides)
+}
+
+function generateSingleAd(input: string): Slide[] {
+  const { title, body } = extractTitleAndBody(input)
+  return [
+    makeSlide(
+      title || input,
+      body || '',
+      '✨',
+      true
+    ),
+  ]
 }
 
 function generateFromScript(script: string, totalSlides: number): Slide[] {
@@ -60,28 +78,32 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
   if (paragraphs.length === 0) return generateFromTopic('Meu Carrossel', totalSlides)
 
+  // Cover from first paragraph
   const cover = extractTitleAndBody(paragraphs[0])
   slides.push(makeSlide(cover.title || 'Título do Carrossel', cover.body || 'Deslize para saber mais →', '✨', true))
 
+  // Content slides from remaining paragraphs
   const contentCount = totalSlides - 2
   const contentParagraphs = paragraphs.slice(1)
-  if (contentParagraphs.length >= contentCount) {
-    const step = contentParagraphs.length / contentCount
-    for (let i = 0; i < contentCount; i++) {
-      const idx = Math.floor(i * step)
-      const { title, body } = extractTitleAndBody(contentParagraphs[idx])
-      slides.push(makeSlide(title || `Slide ${i + 2}`, body || contentParagraphs[idx], SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]))
-    }
-  } else {
-    for (let i = 0; i < contentCount; i++) {
-      if (i < contentParagraphs.length) {
-        const { title, body } = extractTitleAndBody(contentParagraphs[i])
-        slides.push(makeSlide(title || `Slide ${i + 2}`, body || contentParagraphs[i], SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]))
-      } else {
-        slides.push(makeSlide(`Ponto ${i + 1}`, 'Adicione seu conteúdo aqui...', SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]))
-      }
+
+  for (let i = 0; i < contentCount; i++) {
+    if (i < contentParagraphs.length) {
+      const { title, body } = extractTitleAndBody(contentParagraphs[i])
+      slides.push(makeSlide(
+        title || `Ponto ${i + 1}`,
+        body || contentParagraphs[i],
+        SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]
+      ))
+    } else {
+      slides.push(makeSlide(
+        `Ponto ${i + 1}`,
+        'Adicione seu conteúdo aqui...',
+        SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]
+      ))
     }
   }
+
+  // CTA
   slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', true))
   return slides
 }
@@ -89,10 +111,38 @@ function generateFromScript(script: string, totalSlides: number): Slide[] {
 function generateFromTopic(topic: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
   slides.push(makeSlide(topic || 'Título do Carrossel', 'Deslize para saber mais →', '✨', true))
+
   const contentCount = totalSlides - 2
   for (let i = 0; i < contentCount; i++) {
-    slides.push(makeSlide(TOPIC_TITLES[i % TOPIC_TITLES.length], `Desenvolva o ponto ${i + 1} sobre "${topic}" aqui...`, SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]))
+    slides.push(makeSlide(
+      TOPIC_TITLES[i % TOPIC_TITLES.length],
+      `Desenvolva o ponto ${i + 1} sobre "${topic}" aqui...`,
+      SLIDE_EMOJIS[Math.min(i + 1, SLIDE_EMOJIS.length - 1)]
+    ))
   }
+
   slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', true))
   return slides
+}
+
+export function generateMasterImagePrompt(slides: Slide[], topic: string): string {
+  const slideDescriptions = slides.map((slide, i) => {
+    const isFirst = i === 0
+    const isLast = i === slides.length - 1
+    if (isFirst) return `Slide ${i + 1} (CAPA): "${slide.title}" - Imagem impactante que represente o tema principal.`
+    if (isLast) return `Slide ${i + 1} (CTA): "${slide.title}" - Fundo clean ou com textura sutil para destaque do call-to-action.`
+    return `Slide ${i + 1}: "${slide.title}" - ${slide.body ? slide.body.substring(0, 80) : 'Conteúdo informativo'}.`
+  }).join('\n')
+
+  return `Crie ${slides.length} imagens para um carrossel de Instagram sobre "${topic}".
+
+Estilo: Profissional, moderno, clean. Boas para sobreposição de texto branco.
+Formato: 1080x1080px cada imagem.
+Importante: As imagens devem ser sutis o suficiente para não competir com o texto sobreposto. Use tons escuros ou com overlay para garantir legibilidade.
+
+Descrição de cada slide:
+${slideDescriptions}
+
+Paleta sugerida: Tons escuros com contraste, ou imagens com overlay escuro (40-60% opacidade).
+As imagens devem manter consistência visual entre si para parecerem um conjunto coeso.`
 }

@@ -79,17 +79,13 @@ export default function SlideEditor() {
                 <X className="w-3 h-3" />
               </button>
             </div>
-
-            {/* Image opacity */}
             <div className="space-y-1">
               <Label className="text-[10px] text-muted-foreground">Opacidade da imagem</Label>
               <div className="flex items-center gap-2">
-                <input type="range" min={10} max={100} value={Math.round((slide.imageOpacity ?? 0.5) * 100)} onChange={e => update('imageOpacity', Number(e.target.value) / 100)} className="flex-1 accent-primary" />
-                <span className="text-[10px] text-muted-foreground w-7 text-right">{Math.round((slide.imageOpacity ?? 0.5) * 100)}%</span>
+                <input type="range" min={10} max={100} value={Math.round((slide.imageOpacity ?? 0.5) * 100)} onChange={e => update('imageOpacity', Number(e.target.value) / 100)} style={{ flex: 1, minWidth: 0 }} className="accent-primary" />
+                <span className="text-[10px] text-muted-foreground" style={{ width: '28px', textAlign: 'right', flexShrink: 0 }}>{Math.round((slide.imageOpacity ?? 0.5) * 100)}%</span>
               </div>
             </div>
-
-            {/* Image overlay color */}
             <div className="space-y-1">
               <Label className="text-[10px] text-muted-foreground">Cor do overlay</Label>
               <div className="flex items-center gap-2">
@@ -97,7 +93,6 @@ export default function SlideEditor() {
                 <span className="text-[10px] text-muted-foreground">Sobre a imagem</span>
               </div>
             </div>
-
             <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
               <Upload className="w-3.5 h-3.5" /> Trocar imagem
             </Button>
@@ -112,7 +107,7 @@ export default function SlideEditor() {
 
       <div className="border-t border-border" />
 
-      {/* Text colors for this slide */}
+      {/* Text colors */}
       <div className="space-y-2">
         <Label className="text-xs font-semibold">Cores do texto (este slide)</Label>
         <div className="flex gap-3">
@@ -138,8 +133,16 @@ export default function SlideEditor() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs">Título</Label>
-        <Input value={slide.title} onChange={e => update('title', e.target.value)} placeholder="Título do slide" className="h-9 text-sm" />
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Título</Label>
+          <span className="text-[10px] text-muted-foreground">Enter = nova linha</span>
+        </div>
+        <Textarea
+          value={slide.title}
+          onChange={e => update('title', e.target.value)}
+          placeholder="Título do slide"
+          className="text-sm min-h-[60px] resize-y"
+        />
       </div>
 
       <div className="space-y-2">
@@ -153,7 +156,7 @@ export default function SlideEditor() {
           <button onClick={() => wrapSelection('*')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Itálico">
             <Italic className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] text-muted-foreground ml-1">Selecione texto + B ou I</span>
+          <span className="text-[10px] text-muted-foreground ml-1">Selecione + B ou I</span>
         </div>
         <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" />
       </div>
@@ -180,7 +183,6 @@ export default function SlideEditor() {
 
       <div className="border-t border-border" />
 
-      {/* Text position */}
       <div className="space-y-2">
         <Label className="text-xs">Posição do texto</Label>
         <div className="flex gap-1">
@@ -192,7 +194,6 @@ export default function SlideEditor() {
         </div>
       </div>
 
-      {/* Text alignment */}
       <div className="space-y-2">
         <Label className="text-xs">Alinhamento</Label>
         <div className="flex gap-1">

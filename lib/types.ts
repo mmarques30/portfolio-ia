@@ -4,6 +4,9 @@ export interface Slide {
   body: string
   quote: string
   emoji: string
+  image: string | null
+  textPosition: 'top' | 'center' | 'bottom'
+  textAlign: 'left' | 'center' | 'right'
 }
 
 export interface ColorConfig {
@@ -69,3 +72,8 @@ export interface TemplateConfig {
 }
 
 export type SlideType = 'cover' | 'content' | 'cta'
+
+export interface EngagementScore {
+  total: number
+  details: { label: string; score: number; max: number; tip: string }[]
+}

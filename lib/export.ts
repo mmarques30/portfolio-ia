@@ -2,43 +2,57 @@ import { toPng } from 'html-to-image'
 import JSZip from 'jszip'
 import { saveAs } from 'file-saver'
 
+async function waitForImages(element: HTMLElement): Promise<void> {
+  const images = element.querySelectorAll('img')
+  const promises = Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve()
+    return new Promise<void>((resolve) => {
+      img.onload = () => resolve()
+      img.onerror = () => resolve()
+      // Timeout after 3s
+      setTimeout(resolve, 3000)
+    })
+  })
+  await Promise.all(promises)
+}
+
 async function captureElement(element: HTMLElement): Promise<string> {
-  // Multiple attempts to ensure images are loaded
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      const dataUrl = await toPng(element, {
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-        pixelRatio: 2,
-        cacheBust: true,
-        skipAutoScale: true,
-        style: {
-          transform: 'none',
-          transformOrigin: 'top left',
-        },
-        filter: () => true,
-      })
-      // Check if the image is not blank (more than just a few bytes)
-      if (dataUrl && dataUrl.length > 1000) {
-        return dataUrl
-      }
-    } catch (err) {
-      console.warn(`Export attempt ${attempt + 1} failed:`, err)
-    }
-    // Wait before retry
-    await new Promise(r => setTimeout(r, 500))
-  }
-  // Final attempt without retry
-  return toPng(element, {
-    width: element.offsetWidth,
-    height: element.offsetHeight,
+  // Wait for all images to load
+  await waitForImages(element)
+  // Small delay for rendering
+  await new Promise(r => setTimeout(r, 200))
+
+  const options = {
+    width: element.scrollWidth || element.offsetWidth,
+    height: element.scrollHeight || element.offsetHeight,
     pixelRatio: 2,
     cacheBust: true,
+    skipAutoScale: true,
     style: {
       transform: 'none',
       transformOrigin: 'top left',
     },
-  })
+    filter: (node: HTMLElement) => {
+      // Include all nodes
+      return true
+    },
+  }
+
+  // Try multiple times - html-to-image can be flaky
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const dataUrl = await toPng(element, options)
+      if (dataUrl && dataUrl.length > 500) {
+        return dataUrl
+      }
+    } catch (err) {
+      console.warn(`Export attempt ${attempt + 1} failed:`, err)
+      await new Promise(r => setTimeout(r, 300))
+    }
+  }
+
+  // Final attempt
+  return toPng(element, options)
 }
 
 export async function exportSlideAsPng(element: HTMLElement, filename: string): Promise<void> {

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useMemo } from 'react'
 import { CarouselProvider, useCarousel } from '@/lib/carousel-context'
-import { SlideType, SavedCarousel, CarouselState } from '@/lib/types'
+import { SlideType, SavedCarousel } from '@/lib/types'
 import { exportCarouselAsZip, exportSlideAsPng } from '@/lib/export'
 import { saveDraft, getDrafts, deleteDraft, loadDraft } from '@/lib/storage'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
@@ -15,23 +15,12 @@ import CustomizationPanel from '@/components/Sidebar/CustomizationPanel'
 import PhoneMockup from '@/components/Preview/PhoneMockup'
 import SlideRenderer from '@/components/Preview/SlideRenderer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
   if (index === 0) return 'cover'
   if (index === total - 1) return 'cta'
   return 'content'
-}
-
-function stripImagesForSave(state: CarouselState): CarouselState {
-  return {
-    ...state,
-    slides: state.slides.map(s => ({ ...s, image: null })),
-    background: { ...state.background, image: null },
-    logo: null,
-    profileImage: null,
-  }
 }
 
 function CarouselEditor() {
@@ -45,8 +34,7 @@ function CarouselEditor() {
 
   const handleSave = useCallback(() => {
     try {
-      const lightState = stripImagesForSave(state)
-      saveDraft(lightState)
+      saveDraft(state)
       setSaveStatus('saved')
       setTimeout(() => setSaveStatus('idle'), 2000)
     } catch (err) {
@@ -59,7 +47,7 @@ function CarouselEditor() {
   const handleExport = useCallback(async () => {
     setIsExporting(true)
     try {
-      await new Promise(r => setTimeout(r, 300))
+      await new Promise(r => setTimeout(r, 500))
       const container = exportContainerRef.current
       if (!container) return
       const elements = Array.from(container.children) as HTMLElement[]
@@ -74,7 +62,7 @@ function CarouselEditor() {
   const handleExportSlide = useCallback(async (index: number) => {
     setIsExporting(true)
     try {
-      await new Promise(r => setTimeout(r, 300))
+      await new Promise(r => setTimeout(r, 500))
       const container = exportContainerRef.current
       if (!container) return
       const element = container.children[index] as HTMLElement
@@ -106,9 +94,9 @@ function CarouselEditor() {
       <Toolbar onExport={handleExport} onSave={handleSave} onLoadDrafts={handleLoadDrafts} onNewCarousel={handleNewCarousel} onToggleMockup={() => setShowMockup(!showMockup)} isExporting={isExporting} saveStatus={saveStatus} />
       <div className="flex-1 flex min-h-0">
         <SlideList />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0" style={{ background: 'hsl(40,20%,96%)' }}>
           {showMockup ? (
-            <div className="flex-1 flex items-center justify-center bg-background p-8 overflow-auto"><PhoneMockup /></div>
+            <div className="flex-1 flex items-center justify-center p-8 overflow-auto"><PhoneMockup /></div>
           ) : (
             <><SlidePreview /><CarouselNavigation /></>
           )}
@@ -116,28 +104,44 @@ function CarouselEditor() {
         <CustomizationPanel onExport={handleExport} onExportSlide={handleExportSlide} isExporting={isExporting} />
       </div>
 
-      <div ref={exportContainerRef} className="fixed" style={{ left: '-99999px', top: '-99999px' }} aria-hidden="true">
+      {/* Export container - positioned off-screen but still rendered */}
+      <div
+        ref={exportContainerRef}
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          left: '-10000px',
+          top: '0',
+          opacity: 1,
+          pointerEvents: 'none',
+          zIndex: -1,
+        }}
+      >
         {state.slides.map((slide, index) => (
           <SlideRenderer key={slide.id} slide={slide} slideIndex={index} totalSlides={state.slides.length} state={state} slideType={getSlideType(index, state.slides.length)} scale={1} />
         ))}
       </div>
 
+      {/* Drafts dialog */}
       <Dialog open={showDrafts} onOpenChange={setShowDrafts}>
-        <DialogContent className="max-w-md">
+        <DialogContent style={{ maxWidth: '440px', borderRadius: '16px' }}>
           <DialogHeader>
             <DialogTitle>Rascunhos salvos</DialogTitle>
             <DialogDescription>Selecione um rascunho para continuar editando.</DialogDescription>
           </DialogHeader>
-          <div className="max-h-64 overflow-y-auto space-y-2">
+          <div style={{ maxHeight: '320px', overflow: 'auto' }} className="space-y-2">
             {drafts.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Nenhum rascunho salvo.</p>
+              <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                <p style={{ fontSize: '14px', color: 'hsl(0,0%,46%)' }}>Nenhum rascunho salvo.</p>
+                <p style={{ fontSize: '12px', color: 'hsl(0,0%,60%)', marginTop: '4px' }}>Clique em "Salvar" para guardar seu trabalho.</p>
+              </div>
             ) : drafts.map(d => (
-              <div key={d.id} className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-accent/50 group">
-                <button className="flex-1 text-left" onClick={() => handleLoadDraft(d.id)}>
-                  <div className="text-sm font-medium">{d.name}</div>
-                  <div className="text-xs text-muted-foreground">{new Date(d.updatedAt).toLocaleDateString('pt-BR')} — {d.state.slides.length} slides</div>
+              <div key={d.id} className="group" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px', borderRadius: '8px', border: '1px solid hsl(0,0%,88%)', cursor: 'pointer', transition: 'all 150ms' }} onMouseOver={e => (e.currentTarget.style.background = 'hsl(80,40%,97%)')} onMouseOut={e => (e.currentTarget.style.background = 'transparent')}>
+                <button style={{ flex: 1, textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }} onClick={() => handleLoadDraft(d.id)}>
+                  <div style={{ fontSize: '14px', fontWeight: 500 }}>{d.name}</div>
+                  <div style={{ fontSize: '12px', color: 'hsl(0,0%,46%)' }}>{new Date(d.updatedAt).toLocaleDateString('pt-BR')} — {d.state.slides.length} slides</div>
                 </button>
-                <button onClick={() => handleDeleteDraft(d.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-opacity">
+                <button onClick={() => handleDeleteDraft(d.id)} className="opacity-0 group-hover:opacity-100" style={{ padding: '4px', borderRadius: '4px', background: 'none', border: 'none', color: 'hsl(0,0%,46%)', cursor: 'pointer', transition: 'opacity 150ms' }}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>

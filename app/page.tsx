@@ -27,14 +27,8 @@ function getSlideType(index: number, total: number): SlideType {
 function stripImagesForSave(state: CarouselState): CarouselState {
   return {
     ...state,
-    slides: state.slides.map(s => ({
-      ...s,
-      image: null,
-    })),
-    background: {
-      ...state.background,
-      image: null,
-    },
+    slides: state.slides.map(s => ({ ...s, image: null })),
+    background: { ...state.background, image: null },
     logo: null,
     profileImage: null,
   }
@@ -65,7 +59,7 @@ function CarouselEditor() {
   const handleExport = useCallback(async () => {
     setIsExporting(true)
     try {
-      await new Promise(r => setTimeout(r, 100))
+      await new Promise(r => setTimeout(r, 300))
       const container = exportContainerRef.current
       if (!container) return
       const elements = Array.from(container.children) as HTMLElement[]
@@ -80,7 +74,7 @@ function CarouselEditor() {
   const handleExportSlide = useCallback(async (index: number) => {
     setIsExporting(true)
     try {
-      await new Promise(r => setTimeout(r, 100))
+      await new Promise(r => setTimeout(r, 300))
       const container = exportContainerRef.current
       if (!container) return
       const element = container.children[index] as HTMLElement
@@ -93,27 +87,10 @@ function CarouselEditor() {
     }
   }, [])
 
-  const handleNewCarousel = useCallback(() => {
-    dispatch({ type: 'NEW_CAROUSEL' })
-  }, [dispatch])
-
-  const handleLoadDrafts = useCallback(() => {
-    setDrafts(getDrafts())
-    setShowDrafts(true)
-  }, [])
-
-  const handleLoadDraft = useCallback((id: string) => {
-    const draft = loadDraft(id)
-    if (draft) {
-      dispatch({ type: 'LOAD_CAROUSEL', payload: draft })
-      setShowDrafts(false)
-    }
-  }, [dispatch])
-
-  const handleDeleteDraft = useCallback((id: string) => {
-    deleteDraft(id)
-    setDrafts(getDrafts())
-  }, [])
+  const handleNewCarousel = useCallback(() => { dispatch({ type: 'NEW_CAROUSEL' }) }, [dispatch])
+  const handleLoadDrafts = useCallback(() => { setDrafts(getDrafts()); setShowDrafts(true) }, [])
+  const handleLoadDraft = useCallback((id: string) => { const draft = loadDraft(id); if (draft) { dispatch({ type: 'LOAD_CAROUSEL', payload: draft }); setShowDrafts(false) } }, [dispatch])
+  const handleDeleteDraft = useCallback((id: string) => { deleteDraft(id); setDrafts(getDrafts()) }, [])
 
   const keyboardHandlers = useMemo(() => ({
     onSave: handleSave,
@@ -126,60 +103,25 @@ function CarouselEditor() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      <Toolbar
-        onExport={handleExport}
-        onSave={handleSave}
-        onLoadDrafts={handleLoadDrafts}
-        onNewCarousel={handleNewCarousel}
-        onToggleMockup={() => setShowMockup(!showMockup)}
-        isExporting={isExporting}
-        saveStatus={saveStatus}
-      />
-
+      <Toolbar onExport={handleExport} onSave={handleSave} onLoadDrafts={handleLoadDrafts} onNewCarousel={handleNewCarousel} onToggleMockup={() => setShowMockup(!showMockup)} isExporting={isExporting} saveStatus={saveStatus} />
       <div className="flex-1 flex min-h-0">
         <SlideList />
-
         <div className="flex-1 flex flex-col min-w-0">
           {showMockup ? (
-            <div className="flex-1 flex items-center justify-center bg-background p-8 overflow-auto">
-              <PhoneMockup />
-            </div>
+            <div className="flex-1 flex items-center justify-center bg-background p-8 overflow-auto"><PhoneMockup /></div>
           ) : (
-            <>
-              <SlidePreview />
-              <CarouselNavigation />
-            </>
+            <><SlidePreview /><CarouselNavigation /></>
           )}
         </div>
-
-        <CustomizationPanel
-          onExport={handleExport}
-          onExportSlide={handleExportSlide}
-          isExporting={isExporting}
-        />
+        <CustomizationPanel onExport={handleExport} onExportSlide={handleExportSlide} isExporting={isExporting} />
       </div>
 
-      {/* Hidden export container */}
-      <div
-        ref={exportContainerRef}
-        className="fixed"
-        style={{ left: '-99999px', top: '-99999px' }}
-        aria-hidden="true"
-      >
+      <div ref={exportContainerRef} className="fixed" style={{ left: '-99999px', top: '-99999px' }} aria-hidden="true">
         {state.slides.map((slide, index) => (
-          <SlideRenderer
-            key={slide.id}
-            slide={slide}
-            slideIndex={index}
-            totalSlides={state.slides.length}
-            state={state}
-            slideType={getSlideType(index, state.slides.length)}
-            scale={1}
-          />
+          <SlideRenderer key={slide.id} slide={slide} slideIndex={index} totalSlides={state.slides.length} state={state} slideType={getSlideType(index, state.slides.length)} scale={1} />
         ))}
       </div>
 
-      {/* Drafts dialog */}
       <Dialog open={showDrafts} onOpenChange={setShowDrafts}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -189,27 +131,17 @@ function CarouselEditor() {
           <div className="max-h-64 overflow-y-auto space-y-2">
             {drafts.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">Nenhum rascunho salvo.</p>
-            ) : (
-              drafts.map(d => (
-                <div key={d.id} className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-accent/50 group">
-                  <button
-                    className="flex-1 text-left"
-                    onClick={() => handleLoadDraft(d.id)}
-                  >
-                    <div className="text-sm font-medium">{d.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(d.updatedAt).toLocaleDateString('pt-BR')} — {d.state.slides.length} slides
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteDraft(d.id)}
-                    className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-opacity"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))
-            )}
+            ) : drafts.map(d => (
+              <div key={d.id} className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-accent/50 group">
+                <button className="flex-1 text-left" onClick={() => handleLoadDraft(d.id)}>
+                  <div className="text-sm font-medium">{d.name}</div>
+                  <div className="text-xs text-muted-foreground">{new Date(d.updatedAt).toLocaleDateString('pt-BR')} — {d.state.slides.length} slides</div>
+                </button>
+                <button onClick={() => handleDeleteDraft(d.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-opacity">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
           </div>
         </DialogContent>
       </Dialog>

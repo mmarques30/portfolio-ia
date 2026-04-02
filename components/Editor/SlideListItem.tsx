@@ -21,26 +21,11 @@ interface SlideListItemProps {
 }
 
 export default function SlideListItem({
-  slide,
-  index,
-  isActive,
-  slideType,
-  state,
-  onSelect,
-  onDuplicate,
-  onRemove,
-  canRemove,
-  canDuplicate,
+  slide, index, isActive, slideType, state,
+  onSelect, onDuplicate, onRemove, canRemove, canDuplicate,
 }: SlideListItemProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: slide.id,
-  })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: slide.id })
+  const style = { transform: CSS.Transform.toString(transform), transition }
   const typeLabel = slideType === 'cover' ? 'Capa' : slideType === 'cta' ? 'CTA' : `Slide ${index + 1}`
 
   return (
@@ -54,26 +39,26 @@ export default function SlideListItem({
       )}
       onClick={onSelect}
     >
-      <button
-        {...attributes}
-        {...listeners}
-        className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-      >
+      <button {...attributes} {...listeners} className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
         <GripVertical className="w-4 h-4" />
       </button>
 
-      {/* Mini preview thumbnail */}
       <div
         className="w-12 h-12 rounded flex-shrink-0 flex items-center justify-center text-[8px] font-medium overflow-hidden"
         style={{
           backgroundColor: state.colors.background,
           color: state.colors.text,
           border: `1px solid ${state.colors.accent}30`,
+          backgroundImage: slide.image ? `url(${slide.image})` : undefined,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
-        <span className="truncate px-1 text-center leading-tight" style={{ fontSize: '7px' }}>
-          {slide.title.substring(0, 20)}
-        </span>
+        {!slide.image && (
+          <span className="truncate px-1 text-center leading-tight" style={{ fontSize: '7px' }}>
+            {slide.title.substring(0, 20)}
+          </span>
+        )}
       </div>
 
       <div className="flex-1 min-w-0">
@@ -81,21 +66,14 @@ export default function SlideListItem({
         <div className="text-[10px] text-muted-foreground truncate">{slide.title}</div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {canDuplicate && (
-          <button
-            onClick={e => { e.stopPropagation(); onDuplicate() }}
-            className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
-          >
+          <button onClick={e => { e.stopPropagation(); onDuplicate() }} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground">
             <Copy className="w-3 h-3" />
           </button>
         )}
         {canRemove && (
-          <button
-            onClick={e => { e.stopPropagation(); onRemove() }}
-            className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive"
-          >
+          <button onClick={e => { e.stopPropagation(); onRemove() }} className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive">
             <Trash2 className="w-3 h-3" />
           </button>
         )}

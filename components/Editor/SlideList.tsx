@@ -19,7 +19,6 @@ function getSlideType(index: number, total: number): SlideType {
 
 export default function SlideList() {
   const { state, dispatch } = useCarousel()
-
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -30,9 +29,7 @@ export default function SlideList() {
     if (!over || active.id === over.id) return
     const oldIndex = state.slides.findIndex(s => s.id === active.id)
     const newIndex = state.slides.findIndex(s => s.id === over.id)
-    if (oldIndex !== -1 && newIndex !== -1) {
-      dispatch({ type: 'REORDER_SLIDES', payload: { oldIndex, newIndex } })
-    }
+    if (oldIndex !== -1 && newIndex !== -1) dispatch({ type: 'REORDER_SLIDES', payload: { oldIndex, newIndex } })
   }
 
   return (
@@ -41,14 +38,9 @@ export default function SlideList() {
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slides</span>
         <span className="text-xs text-muted-foreground">{state.slides.length}/15</span>
       </div>
-
       <ScrollArea className="flex-1">
         <div className="p-2 space-y-1">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={state.slides.map(s => s.id)} strategy={verticalListSortingStrategy}>
               {state.slides.map((slide, index) => (
                 <SlideListItem
@@ -61,7 +53,7 @@ export default function SlideList() {
                   onSelect={() => dispatch({ type: 'SET_ACTIVE_SLIDE', payload: index })}
                   onDuplicate={() => dispatch({ type: 'DUPLICATE_SLIDE', payload: index })}
                   onRemove={() => dispatch({ type: 'REMOVE_SLIDE', payload: index })}
-                  canRemove={state.slides.length > 3}
+                  canRemove={state.slides.length > 1}
                   canDuplicate={state.slides.length < 15}
                 />
               ))}
@@ -69,15 +61,8 @@ export default function SlideList() {
           </DndContext>
         </div>
       </ScrollArea>
-
       <div className="p-3 border-t border-border">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full gap-1.5 text-xs"
-          onClick={() => dispatch({ type: 'ADD_SLIDE' })}
-          disabled={state.slides.length >= 15}
-        >
+        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => dispatch({ type: 'ADD_SLIDE' })} disabled={state.slides.length >= 15}>
           <Plus className="w-3.5 h-3.5" />
           Adicionar Slide
         </Button>

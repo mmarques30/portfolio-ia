@@ -145,21 +145,24 @@ export default function SlideEditor() {
         />
       </div>
 
-      <div className="space-y-2">
-        <Label className="text-xs">
-          {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
-        </Label>
-        <div className="flex items-center gap-1 mb-1">
-          <button onClick={() => wrapSelection('**')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Negrito">
-            <Bold className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => wrapSelection('*')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Itálico">
-            <Italic className="w-3.5 h-3.5" />
-          </button>
-          <span className="text-[10px] text-muted-foreground ml-1">Selecione + B ou I</span>
+      {/* Body text - NOT shown for CTA (ctaText handles it) */}
+      {slideType !== 'cta' && (
+        <div className="space-y-2">
+          <Label className="text-xs">
+            {slideType === 'cover' ? 'Subtítulo' : 'Corpo do texto'}
+          </Label>
+          <div className="flex items-center gap-1 mb-1">
+            <button onClick={() => wrapSelection('**')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Negrito">
+              <Bold className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => wrapSelection('*')} className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors" title="Itálico">
+              <Italic className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[10px] text-muted-foreground ml-1">Selecione + B ou I</span>
+          </div>
+          <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" />
         </div>
-        <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" />
-      </div>
+      )}
 
       {slideType === 'content' && (
         <div className="space-y-2">
@@ -175,8 +178,13 @@ export default function SlideEditor() {
             <Input value={state.ctaHandle} onChange={e => dispatch({ type: 'SET_CTA', payload: { handle: e.target.value } })} placeholder="@seuperfil" className="h-9 text-sm" />
           </div>
           <div className="space-y-2">
-            <Label className="text-xs">Texto de CTA</Label>
-            <Input value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conteúdo" className="h-9 text-sm" />
+            <Label className="text-xs">Texto do CTA</Label>
+            <Textarea
+              value={state.ctaText}
+              onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })}
+              placeholder="Siga para mais conteúdo"
+              className="text-sm min-h-[60px] resize-y"
+            />
           </div>
         </>
       )}

@@ -1,13 +1,13 @@
 "use client"
 
-import React, { useState } from 'react'
+import React from 'react'
 import { useCarousel } from '@/lib/carousel-context'
 import { TEMPLATES } from '@/lib/templates'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Download, Square, RectangleVertical, Save, FolderOpen, FilePlus, Smartphone } from 'lucide-react'
+import { Download, Square, RectangleVertical, Save, FolderOpen, FilePlus, Smartphone, Check, AlertCircle } from 'lucide-react'
 import { FormatType, TemplateId } from '@/lib/types'
 
 interface ToolbarProps {
@@ -17,9 +17,10 @@ interface ToolbarProps {
   onNewCarousel: () => void
   onToggleMockup: () => void
   isExporting: boolean
+  saveStatus?: 'idle' | 'saved' | 'error'
 }
 
-export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel, onToggleMockup, isExporting }: ToolbarProps) {
+export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel, onToggleMockup, isExporting, saveStatus = 'idle' }: ToolbarProps) {
   const { state, dispatch } = useCarousel()
 
   return (
@@ -34,7 +35,6 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Carousel name */}
       <Input
         value={state.name}
         onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })}
@@ -44,11 +44,7 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
 
       <Separator orientation="vertical" className="h-6" />
 
-      {/* Template selector */}
-      <Select
-        value={state.template}
-        onValueChange={v => dispatch({ type: 'SET_TEMPLATE', payload: v as TemplateId })}
-      >
+      <Select value={state.template} onValueChange={v => dispatch({ type: 'SET_TEMPLATE', payload: v as TemplateId })}>
         <SelectTrigger className="w-44 h-8 text-sm">
           <SelectValue placeholder="Template" />
         </SelectTrigger>
@@ -59,7 +55,6 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
         </SelectContent>
       </Select>
 
-      {/* Format toggle */}
       <div className="flex items-center border border-border rounded-md overflow-hidden">
         <button
           className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors ${state.format === '1080x1080' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`}
@@ -79,7 +74,6 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
 
       <div className="flex-1" />
 
-      {/* Actions */}
       <Button variant="ghost" size="sm" onClick={onToggleMockup} className="gap-1.5 text-xs">
         <Smartphone className="w-4 h-4" />
         <span className="hidden lg:inline">Mockup</span>
@@ -95,9 +89,16 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
         <span className="hidden lg:inline">Rascunhos</span>
       </Button>
 
-      <Button variant="ghost" size="sm" onClick={onSave} className="gap-1.5 text-xs">
-        <Save className="w-4 h-4" />
-        <span className="hidden lg:inline">Salvar</span>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onSave}
+        className={`gap-1.5 text-xs ${saveStatus === 'saved' ? 'text-green-500' : saveStatus === 'error' ? 'text-red-500' : ''}`}
+      >
+        {saveStatus === 'saved' ? <Check className="w-4 h-4" /> : saveStatus === 'error' ? <AlertCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+        <span className="hidden lg:inline">
+          {saveStatus === 'saved' ? 'Salvo!' : saveStatus === 'error' ? 'Erro' : 'Salvar'}
+        </span>
       </Button>
 
       <Button size="sm" onClick={onExport} disabled={isExporting} className="gap-1.5 text-xs">

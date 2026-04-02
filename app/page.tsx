@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useMemo } from 'react'
 import { CarouselProvider, useCarousel } from '@/lib/carousel-context'
-import { SlideType } from '@/lib/types'
+import { SlideType, SavedCarousel, CarouselState } from '@/lib/types'
 import { exportCarouselAsZip, exportSlideAsPng } from '@/lib/export'
 import { saveDraft, getDrafts, deleteDraft, loadDraft } from '@/lib/storage'
 import { useKeyboardShortcuts } from '@/lib/keyboard'
@@ -16,7 +16,6 @@ import PhoneMockup from '@/components/Preview/PhoneMockup'
 import SlideRenderer from '@/components/Preview/SlideRenderer'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { SavedCarousel } from '@/lib/types'
 import { Trash2 } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
@@ -25,22 +24,47 @@ function getSlideType(index: number, total: number): SlideType {
   return 'content'
 }
 
+function stripImagesForSave(state: CarouselState): CarouselState {
+  return {
+    ...state,
+    slides: state.slides.map(s => ({
+      ...s,
+      image: null,
+    })),
+    background: {
+      ...state.background,
+      image: null,
+    },
+    logo: null,
+    profileImage: null,
+  }
+}
+
 function CarouselEditor() {
   const { state, dispatch } = useCarousel()
   const [isExporting, setIsExporting] = useState(false)
   const [showMockup, setShowMockup] = useState(false)
   const [showDrafts, setShowDrafts] = useState(false)
   const [drafts, setDrafts] = useState<SavedCarousel[]>([])
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle')
   const exportContainerRef = useRef<HTMLDivElement>(null)
 
   const handleSave = useCallback(() => {
-    saveDraft(state)
+    try {
+      const lightState = stripImagesForSave(state)
+      saveDraft(lightState)
+      setSaveStatus('saved')
+      setTimeout(() => setSaveStatus('idle'), 2000)
+    } catch (err) {
+      console.error('Save failed:', err)
+      setSaveStatus('error')
+      setTimeout(() => setSaveStatus('idle'), 3000)
+    }
   }, [state])
 
   const handleExport = useCallback(async () => {
     setIsExporting(true)
     try {
-      // Wait for render
       await new Promise(r => setTimeout(r, 100))
       const container = exportContainerRef.current
       if (!container) return
@@ -109,6 +133,7 @@ function CarouselEditor() {
         onNewCarousel={handleNewCarousel}
         onToggleMockup={() => setShowMockup(!showMockup)}
         isExporting={isExporting}
+        saveStatus={saveStatus}
       />
 
       <div className="flex-1 flex min-h-0">
@@ -134,7 +159,7 @@ function CarouselEditor() {
         />
       </div>
 
-      {/* Hidden export container - renders all slides at full size */}
+      {/* Hidden export container */}
       <div
         ref={exportContainerRef}
         className="fixed"

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { SlideType } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic } from 'lucide-react'
+import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic, ImageIcon } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
   if (index === 0) return 'cover'
@@ -49,7 +49,6 @@ export default function SlideEditor() {
     if (selected.length === 0) return
     const newText = text.substring(0, start) + wrapper + selected + wrapper + text.substring(end)
     update('body', newText)
-    // Restore cursor position after React re-render
     setTimeout(() => {
       textarea.focus()
       textarea.setSelectionRange(start + wrapper.length, end + wrapper.length)
@@ -72,6 +71,39 @@ export default function SlideEditor() {
           </button>
         )}
       </div>
+
+      {/* Per-slide image - FIRST, most visible */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5">
+          <ImageIcon className="w-3.5 h-3.5 text-muted-foreground" />
+          <Label className="text-xs font-semibold">Imagem deste slide</Label>
+        </div>
+        {slide.image ? (
+          <div className="space-y-2">
+            <div className="relative rounded-md overflow-hidden border border-border">
+              <img src={slide.image} alt="" className="w-full h-24 object-cover" />
+              <button
+                onClick={() => update('image', null)}
+                className="absolute top-1 right-1 p-1 rounded-md bg-black/50 hover:bg-black/70 text-white"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+            <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
+              <Upload className="w-3.5 h-3.5" />
+              Trocar imagem
+            </Button>
+          </div>
+        ) : (
+          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
+            <Upload className="w-3.5 h-3.5" />
+            Adicionar imagem (só neste slide)
+          </Button>
+        )}
+        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+      </div>
+
+      <div className="border-t border-border" />
 
       <div className="space-y-2">
         <Label className="text-xs">Emoji / Ícone</Label>
@@ -97,23 +129,22 @@ export default function SlideEditor() {
         <Label className="text-xs">
           {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
         </Label>
-        {/* Formatting toolbar */}
         <div className="flex items-center gap-1 mb-1">
           <button
             onClick={() => wrapSelection('**')}
             className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            title="Negrito (selecione o texto primeiro)"
+            title="Negrito"
           >
             <Bold className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={() => wrapSelection('*')}
             className="p-1.5 rounded border border-border hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            title="Itálico (selecione o texto primeiro)"
+            title="Itálico"
           >
             <Italic className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] text-muted-foreground ml-1">Selecione texto e clique B ou I</span>
+          <span className="text-[10px] text-muted-foreground ml-1">Selecione texto + B ou I</span>
         </div>
         <Textarea
           ref={bodyRef}
@@ -159,6 +190,8 @@ export default function SlideEditor() {
         </>
       )}
 
+      <div className="border-t border-border" />
+
       {/* Text position */}
       <div className="space-y-2">
         <Label className="text-xs">Posição do texto</Label>
@@ -200,34 +233,6 @@ export default function SlideEditor() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* Per-slide image */}
-      <div className="space-y-2">
-        <Label className="text-xs">Imagem deste slide</Label>
-        {slide.image ? (
-          <div className="space-y-2">
-            <div className="relative rounded-md overflow-hidden border border-border">
-              <img src={slide.image} alt="" className="w-full h-20 object-cover" />
-              <button
-                onClick={() => update('image', null)}
-                className="absolute top-1 right-1 p-1 rounded-md bg-black/50 hover:bg-black/70 text-white"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-            <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
-              <Upload className="w-3.5 h-3.5" />
-              Trocar imagem
-            </Button>
-          </div>
-        ) : (
-          <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
-            <Upload className="w-3.5 h-3.5" />
-            Adicionar imagem
-          </Button>
-        )}
-        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
       </div>
     </div>
   )

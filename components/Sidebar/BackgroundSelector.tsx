@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { BackgroundType, PatternType } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { Upload, X } from 'lucide-react'
+import { Upload, X, Info } from 'lucide-react'
 
 const BG_TYPES: { value: BackgroundType; label: string }[] = [
   { value: 'solid', label: 'Sólido' },
@@ -109,14 +109,19 @@ export default function BackgroundSelector() {
 
       {state.background.type === 'image' && (
         <div className="space-y-3">
+          {/* Warning about global vs per-slide */}
+          <div className="flex items-start gap-2 p-2 rounded-md bg-primary/5 border border-primary/20">
+            <Info className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              Esta imagem aparece em <strong>TODOS</strong> os slides como fundo.
+              Para imagem <strong>individual por slide</strong>, use a aba <strong>Editar → Imagem deste slide</strong>.
+            </p>
+          </div>
+
           {state.background.image ? (
             <div className="space-y-2">
               <div className="relative rounded-md overflow-hidden border border-border">
-                <img
-                  src={state.background.image}
-                  alt="Fundo"
-                  className="w-full h-24 object-cover"
-                />
+                <img src={state.background.image} alt="Fundo" className="w-full h-24 object-cover" />
                 <button
                   onClick={() => dispatch({ type: 'SET_BACKGROUND', payload: { image: null } })}
                   className="absolute top-1 right-1 p-1 rounded-md bg-black/50 hover:bg-black/70 text-white"
@@ -124,25 +129,15 @@ export default function BackgroundSelector() {
                   <X className="w-3 h-3" />
                 </button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-1.5 text-xs"
-                onClick={() => imageInputRef.current?.click()}
-              >
+              <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
                 <Upload className="w-3.5 h-3.5" />
-                Trocar imagem
+                Trocar imagem global
               </Button>
             </div>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full gap-1.5 text-xs"
-              onClick={() => imageInputRef.current?.click()}
-            >
+            <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => imageInputRef.current?.click()}>
               <Upload className="w-3.5 h-3.5" />
-              Upload imagem de fundo
+              Upload imagem global
             </Button>
           )}
 
@@ -163,26 +158,7 @@ export default function BackgroundSelector() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-xs">Cor de overlay</Label>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                value={state.colors.background}
-                onChange={e => dispatch({ type: 'SET_COLORS', payload: { background: e.target.value } })}
-                className="w-8 h-8 rounded-md border border-border cursor-pointer appearance-none [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-none"
-              />
-              <span className="text-xs text-muted-foreground">Sobre a imagem</span>
-            </div>
-          </div>
-
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleImageUpload}
-          />
+          <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
         </div>
       )}
     </div>

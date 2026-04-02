@@ -76,25 +76,31 @@ export default function SlideEditor() {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs">
-          {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">
+            {slideType === 'cover' ? 'Subtítulo' : slideType === 'cta' ? 'Texto do CTA' : 'Corpo do texto'}
+          </Label>
+          <span className="text-[10px] text-muted-foreground">**negrito** *itálico*</span>
+        </div>
         <Textarea
           value={slide.body}
           onChange={e => update('body', e.target.value)}
-          placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...'}
-          className="text-sm min-h-[80px] resize-none"
+          placeholder={slideType === 'cover' ? 'Subtítulo ou descrição breve...' : 'Conteúdo do slide...\n\nUse Enter para parágrafos.\nUse **texto** para negrito e *texto* para itálico.'}
+          className="text-sm min-h-[100px] resize-y"
         />
       </div>
 
       {slideType === 'content' && (
         <div className="space-y-2">
-          <Label className="text-xs">Destaque / Citação (opcional)</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Destaque / Citação (opcional)</Label>
+            <span className="text-[10px] text-muted-foreground">**negrito**</span>
+          </div>
           <Textarea
             value={slide.quote}
             onChange={e => update('quote', e.target.value)}
             placeholder="Texto em destaque..."
-            className="text-sm min-h-[50px] resize-none"
+            className="text-sm min-h-[50px] resize-y"
           />
         </div>
       )}

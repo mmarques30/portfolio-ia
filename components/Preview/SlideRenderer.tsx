@@ -3,6 +3,7 @@
 import React from 'react'
 import { Slide, CarouselState, SlideType } from '@/lib/types'
 import { getFontFamily } from '@/lib/fonts'
+import { renderFormattedText } from '@/lib/text-formatter'
 
 interface SlideRendererProps {
   slide: Slide
@@ -74,11 +75,11 @@ function CoverSlide({ slide, state }: { slide: Slide; state: CarouselState }) {
         className="leading-[1.1] font-bold mb-[24px] w-full"
         style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '72px' : '56px', color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}
       >
-        {slide.title}
+        {renderFormattedText(slide.title)}
       </h1>
       {slide.body && (
         <p style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '24px', color: subColor, lineHeight: 1.5, maxWidth: '90%' }}>
-          {slide.body}
+          {renderFormattedText(slide.body)}
         </p>
       )}
     </div>
@@ -108,14 +109,14 @@ function ContentSlide({ slide, slideIndex, state }: { slide: Slide; slideIndex: 
       {(!isDataTrends || !slide.emoji) && slide.emoji && <div className="mb-[20px] text-[40px] leading-none">{slide.emoji}</div>}
 
       <h2 className="font-bold mb-[20px] leading-[1.15] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '48px' : isDataTrends ? '40px' : '36px', color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}>
-        {slide.title}
+        {renderFormattedText(slide.title)}
       </h2>
-      <p className="leading-[1.7] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}>
-        {slide.body}
-      </p>
+      <div className="leading-[1.7] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}>
+        {renderFormattedText(slide.body)}
+      </div>
       {slide.quote && (
         <div className="mt-[32px] pl-[20px] border-l-[3px] w-full" style={{ borderColor: accentColor, fontFamily: getFontFamily(state.fonts.body), fontSize: '18px', color: textColor, fontStyle: isDataTrends ? 'italic' : 'normal', lineHeight: 1.6 }}>
-          {slide.quote}
+          {renderFormattedText(slide.quote)}
         </div>
       )}
     </div>
@@ -137,10 +138,10 @@ function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
         )}
       </div>
       <h2 className="font-bold mb-[16px] leading-[1.2] w-full" style={{ fontFamily: getFontFamily(state.fonts.heading), fontSize: '40px', color: textColor, letterSpacing: '-1px' }}>
-        {slide.title}
+        {renderFormattedText(slide.title)}
       </h2>
       <p className="mb-[32px] w-full" style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}>
-        {state.ctaText || slide.body}
+        {renderFormattedText(state.ctaText || slide.body)}
       </p>
       <div className="px-[32px] py-[14px] rounded-full font-semibold" style={{ backgroundColor: state.colors.accent, color: state.colors.background, fontFamily: getFontFamily(state.fonts.body), fontSize: '20px' }}>
         {state.ctaHandle}

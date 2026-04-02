@@ -24,33 +24,78 @@ export default function Toolbar({ onExport, onSave, onLoadDrafts, onNewCarousel,
   const { state, dispatch } = useCarousel()
 
   return (
-    <div className="h-14 border-b border-border bg-card flex items-center px-4 gap-3 shrink-0">
-      <div className="flex items-center gap-2 mr-2">
-        <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
-          <span className="text-primary-foreground font-bold text-sm">C</span>
+    <div style={{ height: '56px', borderBottom: '1px solid hsl(0,0%,18%)', background: 'hsl(0,0%,6%)', display: 'flex', alignItems: 'center', padding: '0 24px', gap: '12px', flexShrink: 0 }}>
+      {/* Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginRight: '8px' }}>
+        <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#A8E63D', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <span style={{ color: 'hsl(0,0%,6%)', fontWeight: 700, fontSize: '16px' }}>C</span>
         </div>
-        <span className="font-semibold text-sm hidden md:inline text-foreground">Carousel Studio</span>
+        <span style={{ fontWeight: 600, fontSize: '15px', color: 'white' }} className="hidden md:inline">Carousel Studio</span>
       </div>
-      <Separator orientation="vertical" className="h-6" />
-      <Input value={state.name} onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })} className="w-48 h-8 text-sm bg-background" placeholder="Nome do carrossel" />
-      <Separator orientation="vertical" className="h-6" />
+
+      <Separator orientation="vertical" className="h-6" style={{ background: 'hsl(0,0%,18%)' }} />
+
+      <Input
+        value={state.name}
+        onChange={e => dispatch({ type: 'SET_NAME', payload: e.target.value })}
+        style={{ width: '180px', height: '34px', fontSize: '13px', background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,18%)', color: 'white', borderRadius: '8px' }}
+        placeholder="Nome do carrossel"
+      />
+
+      <Separator orientation="vertical" className="h-6" style={{ background: 'hsl(0,0%,18%)' }} />
+
       <Select value={state.template} onValueChange={v => dispatch({ type: 'SET_TEMPLATE', payload: v as TemplateId })}>
-        <SelectTrigger className="w-44 h-8 text-sm"><SelectValue placeholder="Template" /></SelectTrigger>
+        <SelectTrigger style={{ width: '160px', height: '34px', fontSize: '13px', background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,18%)', color: 'white', borderRadius: '8px' }}>
+          <SelectValue placeholder="Template" />
+        </SelectTrigger>
         <SelectContent>{TEMPLATES.map(t => (<SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>))}</SelectContent>
       </Select>
-      <div className="flex items-center border border-border rounded-md overflow-hidden">
-        <button className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors ${state.format === '1080x1080' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`} onClick={() => dispatch({ type: 'SET_FORMAT', payload: '1080x1080' })}><Square className="w-3.5 h-3.5" /><span className="hidden lg:inline">1:1</span></button>
-        <button className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors ${state.format === '1080x1350' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'}`} onClick={() => dispatch({ type: 'SET_FORMAT', payload: '1080x1350' })}><RectangleVertical className="w-3.5 h-3.5" /><span className="hidden lg:inline">4:5</span></button>
+
+      {/* Format toggle */}
+      <div style={{ display: 'flex', border: '1px solid hsl(0,0%,18%)', borderRadius: '8px', overflow: 'hidden' }}>
+        <button
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', fontSize: '12px', background: state.format === '1080x1080' ? '#A8E63D' : 'transparent', color: state.format === '1080x1080' ? 'hsl(0,0%,6%)' : 'hsl(0,0%,60%)', fontWeight: state.format === '1080x1080' ? 600 : 400, transition: 'all 150ms ease' }}
+          onClick={() => dispatch({ type: 'SET_FORMAT', payload: '1080x1080' })}
+        >
+          <Square className="w-3.5 h-3.5" /><span className="hidden lg:inline">1:1</span>
+        </button>
+        <button
+          style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '6px 10px', fontSize: '12px', background: state.format === '1080x1350' ? '#A8E63D' : 'transparent', color: state.format === '1080x1350' ? 'hsl(0,0%,6%)' : 'hsl(0,0%,60%)', fontWeight: state.format === '1080x1350' ? 600 : 400, transition: 'all 150ms ease' }}
+          onClick={() => dispatch({ type: 'SET_FORMAT', payload: '1080x1350' })}
+        >
+          <RectangleVertical className="w-3.5 h-3.5" /><span className="hidden lg:inline">4:5</span>
+        </button>
       </div>
-      <div className="flex-1" />
-      <Button variant="ghost" size="sm" onClick={onToggleMockup} className="gap-1.5 text-xs"><Smartphone className="w-4 h-4" /><span className="hidden lg:inline">Mockup</span></Button>
-      <Button variant="ghost" size="sm" onClick={onNewCarousel} className="gap-1.5 text-xs"><FilePlus className="w-4 h-4" /><span className="hidden lg:inline">Novo</span></Button>
-      <Button variant="ghost" size="sm" onClick={onLoadDrafts} className="gap-1.5 text-xs"><FolderOpen className="w-4 h-4" /><span className="hidden lg:inline">Rascunhos</span></Button>
-      <Button variant="ghost" size="sm" onClick={onSave} className={`gap-1.5 text-xs ${saveStatus === 'saved' ? 'text-green-500' : saveStatus === 'error' ? 'text-red-500' : ''}`}>
+
+      <div style={{ flex: 1 }} />
+
+      {/* Actions */}
+      <button onClick={onToggleMockup} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', color: 'hsl(0,0%,70%)', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', transition: 'all 150ms' }} onMouseOver={e => (e.currentTarget.style.color = 'white')} onMouseOut={e => (e.currentTarget.style.color = 'hsl(0,0%,70%)')}>
+        <Smartphone className="w-4 h-4" /><span className="hidden lg:inline">Mockup</span>
+      </button>
+
+      <button onClick={onNewCarousel} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', color: 'hsl(0,0%,70%)', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', transition: 'all 150ms' }} onMouseOver={e => (e.currentTarget.style.color = 'white')} onMouseOut={e => (e.currentTarget.style.color = 'hsl(0,0%,70%)')}>
+        <FilePlus className="w-4 h-4" /><span className="hidden lg:inline">Novo</span>
+      </button>
+
+      <button onClick={onLoadDrafts} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', color: 'hsl(0,0%,70%)', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', transition: 'all 150ms' }} onMouseOver={e => (e.currentTarget.style.color = 'white')} onMouseOut={e => (e.currentTarget.style.color = 'hsl(0,0%,70%)')}>
+        <FolderOpen className="w-4 h-4" /><span className="hidden lg:inline">Rascunhos</span>
+      </button>
+
+      <button onClick={onSave} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '12px', color: saveStatus === 'saved' ? '#A8E63D' : saveStatus === 'error' ? '#ef4444' : 'hsl(0,0%,70%)', background: 'transparent', border: 'none', cursor: 'pointer', borderRadius: '6px', transition: 'all 150ms' }}>
         {saveStatus === 'saved' ? <Check className="w-4 h-4" /> : saveStatus === 'error' ? <AlertCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
         <span className="hidden lg:inline">{saveStatus === 'saved' ? 'Salvo!' : saveStatus === 'error' ? 'Erro' : 'Salvar'}</span>
-      </Button>
-      <Button size="sm" onClick={onExport} disabled={isExporting} className="gap-1.5 text-xs"><Download className="w-4 h-4" />{isExporting ? 'Exportando...' : 'Exportar'}</Button>
+      </button>
+
+      {/* Export CTA button - lime green */}
+      <button
+        onClick={onExport}
+        disabled={isExporting}
+        style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 18px', fontSize: '13px', fontWeight: 600, background: '#A8E63D', color: 'hsl(0,0%,6%)', border: 'none', borderRadius: '8px', cursor: isExporting ? 'wait' : 'pointer', opacity: isExporting ? 0.7 : 1, transition: 'all 150ms' }}
+      >
+        <Download className="w-4 h-4" />
+        {isExporting ? 'Exportando...' : 'Exportar'}
+      </button>
     </div>
   )
 }

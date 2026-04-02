@@ -5,7 +5,6 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Slide, CarouselState, SlideType } from '@/lib/types'
 import { GripVertical, Copy, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface SlideListItemProps {
   slide: Slide
@@ -31,49 +30,66 @@ export default function SlideListItem({
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className={cn(
-        'group flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors border',
-        isActive ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-accent/50',
-        isDragging && 'opacity-50'
-      )}
+      style={{
+        ...style,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '8px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        transition: 'all 150ms ease',
+        background: isActive ? 'hsl(0,0%,13%)' : 'transparent',
+        borderLeft: isActive ? '3px solid #A8E63D' : '3px solid transparent',
+        opacity: isDragging ? 0.5 : 1,
+      }}
       onClick={onSelect}
+      className="group"
     >
-      <button {...attributes} {...listeners} className="touch-none text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing">
+      <button {...attributes} {...listeners} style={{ touchAction: 'none', color: 'hsl(0,0%,50%)', cursor: 'grab', background: 'none', border: 'none', padding: 0 }}>
         <GripVertical className="w-4 h-4" />
       </button>
 
       <div
-        className="w-12 h-12 rounded flex-shrink-0 flex items-center justify-center text-[8px] font-medium overflow-hidden"
         style={{
+          width: '48px',
+          height: '48px',
+          borderRadius: '6px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '7px',
+          fontWeight: 500,
+          overflow: 'hidden',
           backgroundColor: state.colors.background,
           color: state.colors.text,
-          border: `1px solid ${state.colors.accent}30`,
+          border: `1px solid hsl(0,0%,25%)`,
           backgroundImage: slide.image ? `url(${slide.image})` : undefined,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
         {!slide.image && (
-          <span className="truncate px-1 text-center leading-tight" style={{ fontSize: '7px' }}>
+          <span style={{ padding: '0 4px', textAlign: 'center', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {slide.title.substring(0, 20)}
           </span>
         )}
       </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium truncate text-foreground">{typeLabel}</div>
-        <div className="text-[10px] text-muted-foreground truncate">{slide.title}</div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: isActive ? 'white' : 'hsl(0,0%,80%)' }}>{typeLabel}</div>
+        <div style={{ fontSize: '10px', color: 'hsl(0,0%,50%)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{slide.title}</div>
       </div>
 
       <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
         {canDuplicate && (
-          <button onClick={e => { e.stopPropagation(); onDuplicate() }} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground">
+          <button onClick={e => { e.stopPropagation(); onDuplicate() }} style={{ padding: '4px', borderRadius: '4px', background: 'none', border: 'none', color: 'hsl(0,0%,50%)', cursor: 'pointer' }}>
             <Copy className="w-3 h-3" />
           </button>
         )}
         {canRemove && (
-          <button onClick={e => { e.stopPropagation(); onRemove() }} className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive">
+          <button onClick={e => { e.stopPropagation(); onRemove() }} style={{ padding: '4px', borderRadius: '4px', background: 'none', border: 'none', color: 'hsl(0,0%,50%)', cursor: 'pointer' }}>
             <Trash2 className="w-3 h-3" />
           </button>
         )}

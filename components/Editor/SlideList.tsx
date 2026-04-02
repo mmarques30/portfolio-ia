@@ -33,13 +33,13 @@ export default function SlideList() {
   }
 
   return (
-    <div className="w-64 border-r border-border bg-card flex flex-col shrink-0">
-      <div className="p-3 border-b border-border flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Slides</span>
-        <span className="text-xs text-muted-foreground">{state.slides.length}/15</span>
+    <div style={{ width: '240px', background: 'hsl(0,0%,6%)', borderRight: '1px solid hsl(0,0%,18%)', display: 'flex', flexDirection: 'column', flexShrink: 0, color: 'hsl(0,0%,80%)' }}>
+      <div style={{ padding: '16px', borderBottom: '1px solid hsl(0,0%,18%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'hsl(0,0%,46%)' }}>Slides</span>
+        <span style={{ fontSize: '12px', color: 'hsl(0,0%,46%)' }}>{state.slides.length}/15</span>
       </div>
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1">
+        <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={state.slides.map(s => s.id)} strategy={verticalListSortingStrategy}>
               {state.slides.map((slide, index) => (
@@ -61,11 +61,15 @@ export default function SlideList() {
           </DndContext>
         </div>
       </ScrollArea>
-      <div className="p-3 border-t border-border">
-        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => dispatch({ type: 'ADD_SLIDE' })} disabled={state.slides.length >= 15}>
+      <div style={{ padding: '12px', borderTop: '1px solid hsl(0,0%,18%)' }}>
+        <button
+          onClick={() => dispatch({ type: 'ADD_SLIDE' })}
+          disabled={state.slides.length >= 15}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', fontSize: '12px', fontWeight: 500, background: 'transparent', border: '1px solid hsl(0,0%,25%)', borderRadius: '8px', color: 'hsl(0,0%,70%)', cursor: state.slides.length >= 15 ? 'not-allowed' : 'pointer', opacity: state.slides.length >= 15 ? 0.4 : 1, transition: 'all 150ms' }}
+        >
           <Plus className="w-3.5 h-3.5" />
           Adicionar Slide
-        </Button>
+        </button>
       </div>
     </div>
   )

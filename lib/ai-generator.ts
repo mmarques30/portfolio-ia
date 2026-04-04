@@ -18,6 +18,8 @@ function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left
     textColor: null, textSecondaryColor: null,
     textPosition: 'center', textAlign: align,
     overlayImages: [],
+    titleSize: 0, bodySize: 0,
+    paddingX: 80, paddingY: 80,
   }
 }
 
@@ -50,7 +52,6 @@ function parseStructuredScript(script: string): Slide[] {
   for (const block of blocks) {
     const lines = block.split('\n').filter(l => l.trim().length > 0)
     if (lines.length === 0) continue
-
     const header = lines[0].trim()
     const headerMatch = header.match(/SLIDE\s*(\d+)\s*(?:\(([^)]+)\))?/i)
     if (!headerMatch) continue
@@ -62,11 +63,9 @@ function parseStructuredScript(script: string): Slide[] {
 
     const fieldData: Record<string, string[]> = {}
     let currentField = ''
-
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim()
       if (line === '---' || line === '') continue
-
       const detected = detectFieldName(line)
       if (detected) {
         currentField = detected.field
@@ -96,25 +95,17 @@ function parseStructuredScript(script: string): Slide[] {
     const align = (isCover || isCTA) ? 'center' : 'left'
     slides.push(makeSlide(titulo || `Slide ${slideNum}`, finalBody, align as 'left' | 'center'))
   }
-
   return slides
 }
 
 function parseSimpleScript(script: string, totalSlides: number): Slide[] {
-  const paragraphs = script
-    .split(/\n\s*\n/)
-    .map(p => p.trim())
-    .filter(p => p.length > 0 && !p.match(/^(Pilar|Objetivo|Framework|Slides|Produto|---)/i))
-
+  const paragraphs = script.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 0 && !p.match(/^(Pilar|Objetivo|Framework|Slides|Produto|---)/i))
   const slides: Slide[] = []
   if (paragraphs.length === 0) return generateFromTopic('Meu Carrossel', totalSlides)
-
   const coverLines = paragraphs[0].split('\n').filter(l => l.trim())
   slides.push(makeSlide(coverLines[0] || 'Título', coverLines.slice(1).join('\n') || '', 'center'))
-
   const contentCount = totalSlides - 2
   const rest = paragraphs.slice(1)
-
   for (let i = 0; i < contentCount; i++) {
     if (i < rest.length) {
       const lines = rest[i].split('\n').filter(l => l.trim())
@@ -123,16 +114,11 @@ function parseSimpleScript(script: string, totalSlides: number): Slide[] {
       slides.push(makeSlide(`Ponto ${i + 1}`, 'Adicione seu conteúdo aqui...'))
     }
   }
-
   slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', 'center'))
   return slides
 }
 
-const TOPIC_TITLES = [
-  'Você sabia disso?', 'O ponto principal', 'Na prática...', 'O segredo é...',
-  'Dica extra', 'Resumindo', 'A verdade é que...', 'O erro mais comum',
-  'Como aplicar', 'Resultado final',
-]
+const TOPIC_TITLES = ['Você sabia disso?', 'O ponto principal', 'Na prática...', 'O segredo é...', 'Dica extra', 'Resumindo', 'A verdade é que...', 'O erro mais comum', 'Como aplicar', 'Resultado final']
 
 function generateFromTopic(topic: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
@@ -148,7 +134,6 @@ function generateFromTopic(topic: string, totalSlides: number): Slide[] {
 export function generateCarouselSlides(options: GenerateOptions): Slide[] {
   const { mode, input, slideCount, isSingleAd } = options
   if (isSingleAd) return [makeSlide(input, '', 'center')]
-
   if (mode === 'script') {
     if (/SLIDE\s*\d+/i.test(input)) {
       const slides = parseStructuredScript(input)
@@ -156,7 +141,6 @@ export function generateCarouselSlides(options: GenerateOptions): Slide[] {
     }
     return parseSimpleScript(input, Math.max(3, Math.min(15, slideCount)))
   }
-
   return generateFromTopic(input, Math.max(3, Math.min(15, slideCount)))
 }
 

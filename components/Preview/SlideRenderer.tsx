@@ -86,10 +86,10 @@ function OverlayImages({ slide }: { slide: Slide }) {
   )
 }
 
-function getPositionStyle(position: string): React.CSSProperties {
+function getPositionStyle(position: string, py: number): React.CSSProperties {
   switch (position) {
-    case 'top': return { justifyContent: 'flex-start', paddingTop: '120px' }
-    case 'bottom': return { justifyContent: 'flex-end', paddingBottom: '120px' }
+    case 'top': return { justifyContent: 'flex-start', paddingTop: `${py + 40}px` }
+    case 'bottom': return { justifyContent: 'flex-end', paddingBottom: `${py + 40}px` }
     default: return { justifyContent: 'center' }
   }
 }
@@ -106,30 +106,52 @@ function getSubColor(slide: Slide, state: CarouselState): string {
   return state.colors.textSecondary
 }
 
+// Default sizes based on slide type
+function getTitleSize(slide: Slide, slideType: SlideType, template: string): number {
+  if (slide.titleSize && slide.titleSize > 0) return slide.titleSize
+  if (slideType === 'cover') return template === 'provocative' ? 72 : 56
+  if (slideType === 'cta') return 40
+  return template === 'provocative' ? 48 : template === 'data-trends' ? 40 : 36
+}
+
+function getBodySize(slide: Slide, slideType: SlideType, template: string): number {
+  if (slide.bodySize && slide.bodySize > 0) return slide.bodySize
+  if (slideType === 'cover') return 24
+  if (slideType === 'cta') return 22
+  return template === 'provocative' ? 22 : 20
+}
+
 function CoverSlide({ slide, state }: { slide: Slide; state: CarouselState }) {
-  const isProvocative = state.template === 'provocative'
   const textColor = getTextColor(slide, state)
   const subColor = getSubColor(slide, state)
+  const px = slide.paddingX ?? 80
+  const py = slide.paddingY ?? 80
+  const tSize = getTitleSize(slide, 'cover', state.template)
+  const bSize = getBodySize(slide, 'cover', state.template)
+  const isProvocative = state.template === 'provocative'
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center'), zIndex: 2 }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: slide.textAlign === 'left' ? 'flex-start' : slide.textAlign === 'right' ? 'flex-end' : 'center', height: '100%', padding: `${py}px ${px}px`, textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center', py), zIndex: 2 }}>
       {slide.emoji && <div style={{ marginBottom: '32px', fontSize: '64px', lineHeight: 1 }}>{slide.emoji}</div>}
-      <h1 style={{ lineHeight: 1.1, fontWeight: 'bold', marginBottom: '24px', width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '72px' : '56px', color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}><FormattedText text={slide.title} /></h1>
-      {slide.body && <div style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: '24px', color: subColor, lineHeight: 1.5, maxWidth: '90%' }}><FormattedText text={slide.body} /></div>}
+      <h1 style={{ lineHeight: 1.1, fontWeight: 'bold', marginBottom: '24px', width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: `${tSize}px`, color: textColor, letterSpacing: isProvocative ? '-2px' : '-1px', textTransform: isProvocative ? 'uppercase' : 'none' }}><FormattedText text={slide.title} /></h1>
+      {slide.body && <div style={{ fontFamily: getFontFamily(state.fonts.body), fontSize: `${bSize}px`, color: subColor, lineHeight: 1.5, maxWidth: '90%' }}><FormattedText text={slide.body} /></div>}
     </div>
   )
 }
 
 function ContentSlide({ slide, slideIndex, state }: { slide: Slide; slideIndex: number; state: CarouselState }) {
-  const isProvocative = state.template === 'provocative'
-  const isDataTrends = state.template === 'data-trends'
   const textColor = getTextColor(slide, state)
   const subColor = getSubColor(slide, state)
+  const px = slide.paddingX ?? 80
+  const py = slide.paddingY ?? 80
+  const tSize = getTitleSize(slide, 'content', state.template)
+  const bSize = getBodySize(slide, 'content', state.template)
+  const isProvocative = state.template === 'provocative'
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'left') as any, ...getPositionStyle(slide.textPosition || 'center'), zIndex: 2 }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', height: '100%', padding: `${py}px ${px}px`, textAlign: (slide.textAlign || 'left') as any, ...getPositionStyle(slide.textPosition || 'center', py), zIndex: 2 }}>
       {slide.emoji && <div style={{ marginBottom: '20px', fontSize: '40px', lineHeight: 1 }}>{slide.emoji}</div>}
-      <h2 style={{ fontWeight: 'bold', marginBottom: '20px', lineHeight: 1.15, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: isProvocative ? '48px' : isDataTrends ? '40px' : '36px', color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}><FormattedText text={slide.title} /></h2>
-      <div style={{ lineHeight: 1.7, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: isProvocative ? '22px' : '20px', color: subColor }}><FormattedText text={slide.body} /></div>
-      {slide.quote && <div style={{ marginTop: '32px', paddingLeft: '20px', borderLeft: `3px solid ${textColor}30`, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: '18px', color: textColor, fontStyle: isDataTrends ? 'italic' : 'normal', lineHeight: 1.6 }}><FormattedText text={slide.quote} /></div>}
+      <h2 style={{ fontWeight: 'bold', marginBottom: '20px', lineHeight: 1.15, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: `${tSize}px`, color: textColor, letterSpacing: isProvocative ? '-1.5px' : '-0.5px', textTransform: isProvocative ? 'uppercase' : 'none' }}><FormattedText text={slide.title} /></h2>
+      <div style={{ lineHeight: 1.7, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: `${bSize}px`, color: subColor }}><FormattedText text={slide.body} /></div>
+      {slide.quote && <div style={{ marginTop: '32px', paddingLeft: '20px', borderLeft: `3px solid ${textColor}30`, width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: `${Math.round(bSize * 0.9)}px`, color: textColor, lineHeight: 1.6 }}><FormattedText text={slide.quote} /></div>}
     </div>
   )
 }
@@ -137,13 +159,17 @@ function ContentSlide({ slide, slideIndex, state }: { slide: Slide; slideIndex: 
 function CTASlide({ slide, state }: { slide: Slide; state: CarouselState }) {
   const textColor = getTextColor(slide, state)
   const subColor = getSubColor(slide, state)
+  const px = slide.paddingX ?? 80
+  const py = slide.paddingY ?? 80
+  const tSize = getTitleSize(slide, 'cta', state.template)
+  const bSize = getBodySize(slide, 'cta', state.template)
   return (
-    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: '80px', textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center'), zIndex: 2 }}>
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', padding: `${py}px ${px}px`, textAlign: (slide.textAlign || 'center') as any, ...getPositionStyle(slide.textPosition || 'center', py), zIndex: 2 }}>
       <div style={{ width: '96px', height: '96px', borderRadius: '50%', marginBottom: '32px', flexShrink: 0, overflow: 'hidden', backgroundColor: state.colors.accent + '20', border: `3px solid ${state.colors.accent}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         {state.profileImage ? <img src={state.profileImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : <span style={{ fontSize: '40px', color: state.colors.accent, lineHeight: 1 }}>{slide.emoji || ''}</span>}
       </div>
-      <h2 style={{ fontWeight: 'bold', marginBottom: '16px', lineHeight: 1.2, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: '40px', color: textColor, letterSpacing: '-1px' }}><FormattedText text={slide.title} /></h2>
-      <div style={{ marginBottom: '32px', width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: '22px', color: subColor, lineHeight: 1.5 }}><FormattedText text={state.ctaText || slide.body} /></div>
+      <h2 style={{ fontWeight: 'bold', marginBottom: '16px', lineHeight: 1.2, width: '100%', fontFamily: getFontFamily(state.fonts.heading), fontSize: `${tSize}px`, color: textColor, letterSpacing: '-1px' }}><FormattedText text={slide.title} /></h2>
+      <div style={{ marginBottom: '32px', width: '100%', fontFamily: getFontFamily(state.fonts.body), fontSize: `${bSize}px`, color: subColor, lineHeight: 1.5 }}><FormattedText text={state.ctaText || slide.body} /></div>
       <div style={{ padding: '14px 32px', borderRadius: '9999px', fontWeight: 600, backgroundColor: state.colors.accent, color: state.colors.background, fontFamily: getFontFamily(state.fonts.body), fontSize: '20px' }}>{state.ctaHandle}</div>
     </div>
   )

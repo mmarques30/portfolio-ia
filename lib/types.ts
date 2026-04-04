@@ -24,6 +24,10 @@ export interface Slide {
   textPosition: 'top' | 'center' | 'bottom'
   textAlign: 'left' | 'center' | 'right'
   overlayImages: SlideImage[]
+  titleSize: number
+  bodySize: number
+  paddingX: number
+  paddingY: number
 }
 
 export interface ColorConfig {

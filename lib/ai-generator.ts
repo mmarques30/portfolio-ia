@@ -11,119 +11,127 @@ interface GenerateOptions {
   isSingleAd?: boolean
 }
 
-function makeSlide(title: string, body: string, emoji: string, isCover = false): Slide {
+function makeSlide(title: string, body: string, emoji: string, align: 'left' | 'center' = 'left'): Slide {
   return {
     id: generateId(), title, body, quote: '', emoji,
     image: null, imageOpacity: 0.5, imageOverlayColor: '#000000',
     textColor: null, textSecondaryColor: null,
-    textPosition: 'center', textAlign: isCover ? 'center' : 'left',
+    textPosition: 'center', textAlign: align,
     overlayImages: [],
   }
 }
 
-// Detect if script has structured SLIDE markers
-function hasSlideMarkers(text: string): boolean {
-  return /SLIDE\s*\d+/i.test(text)
+function detectFieldName(line: string): { field: string; value: string } | null {
+  const lower = line.toLowerCase().trim()
+  const fields = [
+    { keys: ['título:', 'titulo:'], field: 'titulo' },
+    { keys: ['subtítulo:', 'subtitulo:'], field: 'subtitulo' },
+    { keys: ['corpo:'], field: 'corpo' },
+    { keys: ['rodapé:', 'rodape:'], field: 'rodape' },
+    { keys: ['assinatura:'], field: 'assinatura' },
+    { keys: ['emoji:'], field: 'emoji' },
+  ]
+
+  for (const f of fields) {
+    for (const key of f.keys) {
+      if (lower.startsWith(key)) {
+        const value = line.substring(line.indexOf(':') + 1).trim()
+        return { field: f.field, value }
+      }
+    }
+  }
+  return null
 }
 
-// Parse structured script with SLIDE 1, SLIDE 2 markers
+function getAutoEmoji(slideNum: number, title: string, body: string, isCover: boolean, isCTA: boolean): string {
+  if (isCover) return '✨'
+  if (isCTA) return '👉'
+
+  const text = (title + ' ' + body).toLowerCase()
+  if (text.includes('dado') || text.includes('estat') || text.includes('%') || text.includes('pesquisa')) return '📊'
+  if (text.includes('erro') || text.includes('evite') || text.includes('pare')) return '⚠️'
+  if (text.includes('dica') || text.includes('segredo')) return '💡'
+
+  const numMatch = title.match(/^(\d+)/)
+  if (numMatch) {
+    const num = parseInt(numMatch[1])
+    const numEmojis = ['', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
+    if (num >= 1 && num <= 10) return numEmojis[num]
+  }
+
+  return '📌'
+}
+
 function parseStructuredScript(script: string): Slide[] {
   const slides: Slide[] = []
 
-  // Split by SLIDE N markers
-  const slideBlocks = script.split(/(?=SLIDE\s*\d+)/i).filter(b => b.trim().length > 0)
+  // Remove header lines before first SLIDE
+  const firstSlideIdx = script.search(/SLIDE\s*\d+/i)
+  const cleanScript = firstSlideIdx >= 0 ? script.substring(firstSlideIdx) : script
 
-  for (const block of slideBlocks) {
-    const lines = block.trim().split('\n').map(l => l.trim()).filter(l => l.length > 0)
+  // Split into slide blocks
+  const blocks = cleanScript.split(/(?=SLIDE\s*\d+)/i).filter(b => b.trim().length > 0)
+
+  for (const block of blocks) {
+    const lines = block.split('\n').filter(l => l.trim().length > 0)
     if (lines.length === 0) continue
 
-    // Check if this block starts with a SLIDE marker
-    const headerMatch = lines[0].match(/SLIDE\s*(\d+)\s*(?:\(([^)]+)\))?\s*:?/i)
+    // Parse SLIDE header
+    const header = lines[0].trim()
+    const headerMatch = header.match(/SLIDE\s*(\d+)\s*(?:\(([^)]+)\))?/i)
     if (!headerMatch) continue
 
     const slideNum = parseInt(headerMatch[1])
-    const slideLabel = (headerMatch[2] || '').toLowerCase()
-    const isCover = slideLabel.includes('capa') || slideNum === 1
-    const isCTA = slideLabel.includes('cta') || slideLabel.includes('final')
+    const label = (headerMatch[2] || '').toLowerCase()
+    const isCover = label.includes('capa') || slideNum === 1
+    const isCTA = label.includes('cta') || label.includes('final')
 
-    let title = ''
-    let subtitle = ''
-    let body = ''
-    let footer = ''
-    let emoji = ''
-
-    // Parse fields from remaining lines
-    const contentLines = lines.slice(1)
+    // Parse fields
+    const fieldData: Record<string, string[]> = {}
     let currentField = ''
-    const fields: Record<string, string[]> = {}
 
-    for (const line of contentLines) {
-      // Check for field markers
-      const fieldMatch = line.match(/^(T[i\u00ed]tulo|Subt[i\u00ed]tulo|Corpo|Rodap[e\u00e9]|Assinatura|Emoji)\s*:\s*(.*)/i)
-      if (fieldMatch) {
-        currentField = fieldMatch[1].toLowerCase()
-          .replace(/\u00ed/g, 'i')
-          .replace(/\u00e9/g, 'e')
-        const value = fieldMatch[2].trim()
-        if (!fields[currentField]) fields[currentField] = []
-        if (value) fields[currentField].push(value)
-      } else if (currentField && !line.match(/^---/)) {
-        if (!fields[currentField]) fields[currentField] = []
-        fields[currentField].push(line)
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (line === '---' || line === '') continue
+
+      const detected = detectFieldName(line)
+      if (detected) {
+        currentField = detected.field
+        if (!fieldData[currentField]) fieldData[currentField] = []
+        if (detected.value) fieldData[currentField].push(detected.value)
+      } else if (currentField) {
+        if (!fieldData[currentField]) fieldData[currentField] = []
+        fieldData[currentField].push(line)
       }
     }
 
-    // Extract values
-    title = (fields['titulo'] || []).join('\n')
-    subtitle = (fields['subtitulo'] || []).join('\n')
-    body = (fields['corpo'] || []).join('\n')
-    footer = (fields['rodape'] || fields['assinatura'] || []).join('\n')
-    emoji = (fields['emoji'] || []).join('')
+    const titulo = (fieldData['titulo'] || []).join('\n')
+    const subtitulo = (fieldData['subtitulo'] || []).join('\n')
+    const corpo = (fieldData['corpo'] || []).join('\n')
+    const rodape = (fieldData['rodape'] || fieldData['assinatura'] || []).join('\n')
+    const emojiField = (fieldData['emoji'] || []).join('')
 
-    // Auto-assign emoji based on content
-    if (!emoji) {
-      if (isCover) emoji = '\u2728'
-      else if (isCTA) emoji = '\ud83d\udc49'
-      else if (/\d+\./.test(title) || /^\d/.test(title)) {
-        const num = parseInt(title.match(/\d+/)?.[0] || '0')
-        const numEmojis = ['', '1\ufe0f\u20e3', '2\ufe0f\u20e3', '3\ufe0f\u20e3', '4\ufe0f\u20e3', '5\ufe0f\u20e3', '6\ufe0f\u20e3', '7\ufe0f\u20e3', '8\ufe0f\u20e3', '9\ufe0f\u20e3', '\ud83d\udd1f']
-        emoji = numEmojis[num] || '\ud83d\udccc'
-      } else if (/dado|estat|n\u00famero|%/i.test(title + body)) emoji = '\ud83d\udcca'
-      else emoji = '\ud83d\udccc'
-    }
-
-    // Build the slide body from available fields
-    let fullBody = ''
+    // Build final body
+    let finalBody = ''
     if (isCover) {
-      fullBody = subtitle || body
-      if (footer) fullBody += (fullBody ? '\n\n' : '') + footer
-    } else if (isCTA) {
-      fullBody = body || subtitle
-      if (footer) fullBody += (fullBody ? '\n\n' : '') + footer
+      finalBody = subtitulo || corpo
+      if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     } else {
-      fullBody = body
+      finalBody = corpo
+      if (subtitulo && !corpo) finalBody = subtitulo
+      if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     }
 
-    const slide = makeSlide(
-      title || `Slide ${slideNum}`,
-      fullBody,
-      emoji,
-      isCover || isCTA
-    )
+    const emoji = emojiField || getAutoEmoji(slideNum, titulo, finalBody, isCover, isCTA)
+    const align = (isCover || isCTA) ? 'center' : 'left'
 
-    // Set text alignment based on slide type
-    if (isCover || isCTA) {
-      slide.textAlign = 'center'
-      slide.textPosition = isCover ? 'center' : 'center'
-    }
-
-    slides.push(slide)
+    slides.push(makeSlide(titulo || `Slide ${slideNum}`, finalBody, emoji, align as 'left' | 'center'))
   }
 
   return slides
 }
 
-// Simple paragraph-based parsing
+// Simple fallback parser
 function parseSimpleScript(script: string, totalSlides: number): Slide[] {
   const paragraphs = script
     .split(/\n\s*\n/)
@@ -133,60 +141,54 @@ function parseSimpleScript(script: string, totalSlides: number): Slide[] {
   const slides: Slide[] = []
   if (paragraphs.length === 0) return generateFromTopic('Meu Carrossel', totalSlides)
 
-  // First paragraph = cover
-  const coverLines = paragraphs[0].split('\n').map(l => l.trim()).filter(l => l)
-  const coverTitle = coverLines[0] || 'T\u00edtulo do Carrossel'
-  const coverBody = coverLines.slice(1).join('\n') || 'Deslize para saber mais \u2192'
-  slides.push(makeSlide(coverTitle, coverBody, '\u2728', true))
+  const coverLines = paragraphs[0].split('\n').filter(l => l.trim())
+  slides.push(makeSlide(coverLines[0] || 'Título', coverLines.slice(1).join('\n') || 'Deslize para saber mais →', '✨', 'center'))
 
-  const EMOJIS = ['\u2728', '1\ufe0f\u20e3', '2\ufe0f\u20e3', '3\ufe0f\u20e3', '4\ufe0f\u20e3', '5\ufe0f\u20e3', '6\ufe0f\u20e3', '7\ufe0f\u20e3', '8\ufe0f\u20e3', '9\ufe0f\u20e3', '\ud83d\udd1f']
+  const EMOJIS = ['✨', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
   const contentCount = totalSlides - 2
-  const contentParagraphs = paragraphs.slice(1)
+  const rest = paragraphs.slice(1)
 
   for (let i = 0; i < contentCount; i++) {
-    if (i < contentParagraphs.length) {
-      const lines = contentParagraphs[i].split('\n').map(l => l.trim()).filter(l => l)
-      const title = lines[0] || `Ponto ${i + 1}`
-      const body = lines.slice(1).join('\n') || contentParagraphs[i]
-      slides.push(makeSlide(title, body, EMOJIS[Math.min(i + 1, EMOJIS.length - 1)]))
+    if (i < rest.length) {
+      const lines = rest[i].split('\n').filter(l => l.trim())
+      slides.push(makeSlide(lines[0] || `Ponto ${i + 1}`, lines.slice(1).join('\n') || rest[i], EMOJIS[Math.min(i + 1, EMOJIS.length - 1)]))
     } else {
-      slides.push(makeSlide(`Ponto ${i + 1}`, 'Adicione seu conte\u00fado aqui...', EMOJIS[Math.min(i + 1, EMOJIS.length - 1)]))
+      slides.push(makeSlide(`Ponto ${i + 1}`, 'Adicione seu conteúdo aqui...', EMOJIS[Math.min(i + 1, EMOJIS.length - 1)]))
     }
   }
 
-  slides.push(makeSlide('Gostou do conte\u00fado?', 'Salve este post e compartilhe!', '\ud83d\udc49', true))
+  slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', 'center'))
   return slides
 }
 
 const TOPIC_TITLES = [
-  'Voc\u00ea sabia disso?', 'O ponto principal', 'Na pr\u00e1tica...', 'O segredo \u00e9...',
-  'Dica extra', 'Resumindo', 'A verdade \u00e9 que...', 'O erro mais comum',
+  'Você sabia disso?', 'O ponto principal', 'Na prática...', 'O segredo é...',
+  'Dica extra', 'Resumindo', 'A verdade é que...', 'O erro mais comum',
   'Como aplicar', 'Resultado final',
 ]
 
 function generateFromTopic(topic: string, totalSlides: number): Slide[] {
-  const EMOJIS = ['\u2728', '1\ufe0f\u20e3', '2\ufe0f\u20e3', '3\ufe0f\u20e3', '4\ufe0f\u20e3', '5\ufe0f\u20e3', '6\ufe0f\u20e3', '7\ufe0f\u20e3', '8\ufe0f\u20e3', '9\ufe0f\u20e3', '\ud83d\udd1f']
+  const EMOJIS = ['✨', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟']
   const slides: Slide[] = []
-  slides.push(makeSlide(topic || 'T\u00edtulo do Carrossel', 'Deslize para saber mais \u2192', '\u2728', true))
+  slides.push(makeSlide(topic || 'Título do Carrossel', 'Deslize para saber mais →', '✨', 'center'))
   const contentCount = totalSlides - 2
   for (let i = 0; i < contentCount; i++) {
     slides.push(makeSlide(TOPIC_TITLES[i % TOPIC_TITLES.length], `Desenvolva o ponto ${i + 1} sobre "${topic}" aqui...`, EMOJIS[Math.min(i + 1, EMOJIS.length - 1)]))
   }
-  slides.push(makeSlide('Gostou do conte\u00fado?', 'Salve este post e compartilhe!', '\ud83d\udc49', true))
+  slides.push(makeSlide('Gostou do conteúdo?', 'Salve este post e compartilhe!', '👉', 'center'))
   return slides
 }
 
 export function generateCarouselSlides(options: GenerateOptions): Slide[] {
   const { mode, input, slideCount, isSingleAd } = options
-  if (isSingleAd) return [makeSlide(input, '', '\u2728', true)]
+  if (isSingleAd) return [makeSlide(input, '', '✨', 'center')]
 
   if (mode === 'script') {
-    // Auto-detect structured format
-    if (hasSlideMarkers(input)) {
+    // Auto-detect structured format with SLIDE markers
+    if (/SLIDE\s*\d+/i.test(input)) {
       const slides = parseStructuredScript(input)
       if (slides.length >= 2) return slides
     }
-    // Fallback to simple parsing
     return parseSimpleScript(input, Math.max(3, Math.min(15, slideCount)))
   }
 
@@ -194,12 +196,10 @@ export function generateCarouselSlides(options: GenerateOptions): Slide[] {
 }
 
 export function generateMasterImagePrompt(slides: Slide[], topic: string): string {
-  const slideDescriptions = slides.map((slide, i) => {
-    const isFirst = i === 0
-    const isLast = i === slides.length - 1
-    if (isFirst) return `Slide ${i + 1} (CAPA): "${slide.title}" - Imagem impactante que represente o tema principal.`
-    if (isLast) return `Slide ${i + 1} (CTA): "${slide.title}" - Fundo clean para destaque do call-to-action.`
-    return `Slide ${i + 1}: "${slide.title}" - ${slide.body ? slide.body.substring(0, 80) : 'Conte\u00fado informativo'}.`
+  const desc = slides.map((s, i) => {
+    if (i === 0) return `Slide ${i + 1} (CAPA): "${s.title}" - Imagem impactante.`
+    if (i === slides.length - 1) return `Slide ${i + 1} (CTA): "${s.title}" - Fundo clean.`
+    return `Slide ${i + 1}: "${s.title}" - ${s.body ? s.body.substring(0, 60) : 'Conteúdo'}.`
   }).join('\n')
-  return `Crie ${slides.length} imagens para um carrossel de Instagram sobre "${topic}".\n\nEstilo: Profissional, moderno, clean. Boas para sobreposi\u00e7\u00e3o de texto branco.\nFormato: 1080x1080px cada.\nImportante: Imagens sutis para n\u00e3o competir com texto sobreposto.\n\nDescri\u00e7\u00e3o:\n${slideDescriptions}\n\nPaleta: Tons escuros com contraste, overlay 40-60%.`
+  return `Crie ${slides.length} imagens para carrossel Instagram sobre "${topic}".\nEstilo: Profissional, moderno, clean para texto sobreposto.\nFormato: 1080x1080px.\n\n${desc}\n\nPaleta: Tons escuros, overlay 40-60%.`
 }

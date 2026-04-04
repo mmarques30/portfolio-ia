@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { SlideType, SlideImage } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic, ImageIcon, Plus, Layers } from 'lucide-react'
+import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic, ImageIcon, Plus, Layers, Type } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
   if (index === 0) return 'cover'
@@ -48,10 +48,7 @@ export default function SlideEditor() {
       const newImage: SlideImage = {
         id: Math.random().toString(36).substring(2, 9),
         src: reader.result as string,
-        x: 50, y: 50,
-        width: 30, height: 30,
-        opacity: 100,
-        borderRadius: 0,
+        x: 50, y: 50, width: 30, height: 30, opacity: 100, borderRadius: 0,
         zIndex: (slide.overlayImages?.length || 0) + 1,
       }
       dispatch({ type: 'ADD_OVERLAY_IMAGE', payload: { slideIndex: activeSlideIndex, image: newImage } })
@@ -82,6 +79,24 @@ export default function SlideEditor() {
   }
 
   const overlayImages = slide.overlayImages || []
+  const inputStyle = { background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }
+  const labelStyle = { fontSize: '10px', color: 'hsl(0,0%,46%)' } as React.CSSProperties
+  const sectionBorder = { borderTop: '1px solid hsl(0,0%,18%)', paddingTop: '12px' }
+  const activeBtn = (active: boolean) => ({
+    flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px',
+    fontSize: '12px', padding: '6px', borderRadius: '8px', cursor: 'pointer', transition: 'all 150ms',
+    border: active ? '1px solid #A8E63D' : '1px solid hsl(0,0%,25%)',
+    background: active ? 'rgba(168,230,61,0.1)' : 'transparent',
+    color: active ? 'white' : 'hsl(0,0%,60%)',
+  } as React.CSSProperties)
+
+  // Get current effective sizes for display
+  const defaultTitleSize = slideType === 'cover' ? 56 : slideType === 'cta' ? 40 : 36
+  const defaultBodySize = slideType === 'cover' ? 24 : slideType === 'cta' ? 22 : 20
+  const currentTitleSize = slide.titleSize || defaultTitleSize
+  const currentBodySize = slide.bodySize || defaultBodySize
+  const currentPaddingX = slide.paddingX ?? 80
+  const currentPaddingY = slide.paddingY ?? 80
 
   return (
     <div className="p-4 space-y-4">
@@ -109,17 +124,17 @@ export default function SlideEditor() {
               <button onClick={() => update('image', null)} style={{ position: 'absolute', top: '4px', right: '4px', padding: '4px', borderRadius: '6px', background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', cursor: 'pointer' }}><X className="w-3 h-3" /></button>
             </div>
             <div className="space-y-1">
-              <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Opacidade</Label>
+              <Label style={labelStyle}>Opacidade</Label>
               <div className="flex items-center gap-2">
                 <input type="range" min={10} max={100} value={Math.round((slide.imageOpacity ?? 0.5) * 100)} onChange={e => update('imageOpacity', Number(e.target.value) / 100)} style={{ flex: 1, minWidth: 0 }} className="accent-[#A8E63D]" />
-                <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)', width: '28px', textAlign: 'right' }}>{Math.round((slide.imageOpacity ?? 0.5) * 100)}%</span>
+                <span style={{ ...labelStyle, width: '28px', textAlign: 'right' }}>{Math.round((slide.imageOpacity ?? 0.5) * 100)}%</span>
               </div>
             </div>
             <div className="space-y-1">
-              <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Cor do overlay</Label>
+              <Label style={labelStyle}>Cor do overlay</Label>
               <div className="flex items-center gap-2">
                 <input type="color" value={slide.imageOverlayColor || '#000000'} onChange={e => update('imageOverlayColor', e.target.value)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', cursor: 'pointer' }} />
-                <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Sobre a imagem</span>
+                <span style={labelStyle}>Sobre a imagem</span>
               </div>
             </div>
           </div>
@@ -131,8 +146,8 @@ export default function SlideEditor() {
         <input ref={bgImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgImageUpload} />
       </div>
 
-      {/* Overlay images - multiple */}
-      <div className="space-y-2" style={{ borderTop: '1px solid hsl(0,0%,18%)', paddingTop: '12px' }}>
+      {/* Overlay images */}
+      <div className="space-y-2" style={sectionBorder}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5" style={{ color: '#A8E63D' }} />
@@ -142,9 +157,7 @@ export default function SlideEditor() {
             <Plus className="w-3 h-3" /> Adicionar
           </button>
         </div>
-        <p style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Adicione logos, stickers, fotos. Ajuste posição X/Y, tamanho e opacidade.</p>
         <input ref={overlayImageInputRef} type="file" accept="image/*" className="hidden" onChange={handleOverlayImageUpload} />
-
         {overlayImages.map((img, idx) => (
           <div key={img.id} style={{ padding: '8px', borderRadius: '8px', border: '1px solid hsl(0,0%,25%)', background: 'hsl(0,0%,9%)' }} className="space-y-2">
             <div className="flex items-center gap-2">
@@ -152,33 +165,17 @@ export default function SlideEditor() {
               <span style={{ flex: 1, fontSize: '11px', color: 'hsl(0,0%,70%)' }}>Imagem {idx + 1}</span>
               <button onClick={() => removeOverlay(img.id)} style={{ padding: '2px', background: 'none', border: 'none', color: 'hsl(0,72%,51%)', cursor: 'pointer' }}><Trash2 className="w-3.5 h-3.5" /></button>
             </div>
-            <div className="grid grid-cols-2 gap-2" style={{ fontSize: '10px' }}>
-              <div>
-                <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>X (%)</Label>
-                <input type="range" min={0} max={100} value={img.x} onChange={e => updateOverlay(img.id, { x: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" />
-              </div>
-              <div>
-                <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Y (%)</Label>
-                <input type="range" min={0} max={100} value={img.y} onChange={e => updateOverlay(img.id, { y: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" />
-              </div>
-              <div>
-                <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Largura (%)</Label>
-                <input type="range" min={5} max={100} value={img.width} onChange={e => updateOverlay(img.id, { width: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" />
-              </div>
-              <div>
-                <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Opacidade</Label>
-                <input type="range" min={10} max={100} value={img.opacity} onChange={e => updateOverlay(img.id, { opacity: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" />
-              </div>
-              <div>
-                <Label style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Arredondamento</Label>
-                <input type="range" min={0} max={50} value={img.borderRadius} onChange={e => updateOverlay(img.id, { borderRadius: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" />
-              </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div><Label style={labelStyle}>X (%)</Label><input type="range" min={0} max={100} value={img.x} onChange={e => updateOverlay(img.id, { x: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" /></div>
+              <div><Label style={labelStyle}>Y (%)</Label><input type="range" min={0} max={100} value={img.y} onChange={e => updateOverlay(img.id, { y: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" /></div>
+              <div><Label style={labelStyle}>Largura (%)</Label><input type="range" min={5} max={100} value={img.width} onChange={e => updateOverlay(img.id, { width: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" /></div>
+              <div><Label style={labelStyle}>Opacidade</Label><input type="range" min={10} max={100} value={img.opacity} onChange={e => updateOverlay(img.id, { opacity: Number(e.target.value) })} style={{ width: '100%' }} className="accent-[#A8E63D]" /></div>
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ borderTop: '1px solid hsl(0,0%,18%)', paddingTop: '12px' }} />
+      <div style={sectionBorder} />
 
       {/* Text colors */}
       <div className="space-y-2">
@@ -186,11 +183,11 @@ export default function SlideEditor() {
         <div className="flex gap-3">
           <div className="flex items-center gap-1.5">
             <input type="color" value={slide.textColor || state.colors.text} onChange={e => update('textColor', e.target.value)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', cursor: 'pointer' }} />
-            <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Título</span>
+            <span style={labelStyle}>Título</span>
           </div>
           <div className="flex items-center gap-1.5">
             <input type="color" value={slide.textSecondaryColor || state.colors.textSecondary} onChange={e => update('textSecondaryColor', e.target.value)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', cursor: 'pointer' }} />
-            <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Corpo</span>
+            <span style={labelStyle}>Corpo</span>
           </div>
           {(slide.textColor || slide.textSecondaryColor) && (
             <button onClick={() => { update('textColor', null); update('textSecondaryColor', null) }} style={{ fontSize: '10px', color: 'hsl(0,0%,46%)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>Resetar</button>
@@ -198,37 +195,68 @@ export default function SlideEditor() {
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid hsl(0,0%,18%)', paddingTop: '12px' }} />
+      <div style={sectionBorder} />
 
-      <div className="space-y-2">
-        <Label className="text-xs">Emoji / Ícone</Label>
-        <Input value={slide.emoji} onChange={e => update('emoji', e.target.value)} placeholder="Ex: ✨ 🚀 1️⃣" className="h-9 text-sm" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+      {/* Font size and spacing controls */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5">
+          <Type className="w-3.5 h-3.5" style={{ color: '#A8E63D' }} />
+          <Label className="text-xs font-semibold">Tamanho e espaçamento</Label>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Título ({currentTitleSize}px)</Label></div>
+            <input type="range" min={16} max={96} value={currentTitleSize} onChange={e => update('titleSize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Corpo ({currentBodySize}px)</Label></div>
+            <input type="range" min={12} max={48} value={currentBodySize} onChange={e => update('bodySize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Margem horizontal ({currentPaddingX}px)</Label></div>
+            <input type="range" min={20} max={200} value={currentPaddingX} onChange={e => update('paddingX', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Margem vertical ({currentPaddingY}px)</Label></div>
+            <input type="range" min={20} max={200} value={currentPaddingY} onChange={e => update('paddingY', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+        </div>
       </div>
 
+      <div style={sectionBorder} />
+
+      {/* Emoji */}
+      <div className="space-y-2">
+        <Label className="text-xs">Emoji / Ícone</Label>
+        <Input value={slide.emoji} onChange={e => update('emoji', e.target.value)} placeholder="Ex: ✨ 🚀" className="h-9 text-sm" style={inputStyle} />
+      </div>
+
+      {/* Title */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-xs">Título</Label>
-          <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)' }}>Enter = nova linha</span>
+          <span style={labelStyle}>Enter = nova linha</span>
         </div>
-        <Textarea value={slide.title} onChange={e => update('title', e.target.value)} placeholder="Título do slide" className="text-sm min-h-[60px] resize-y" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+        <Textarea value={slide.title} onChange={e => update('title', e.target.value)} placeholder="Título do slide" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
       </div>
 
+      {/* Body - not for CTA */}
       {slideType !== 'cta' && (
         <div className="space-y-2">
           <Label className="text-xs">{slideType === 'cover' ? 'Subtítulo' : 'Corpo do texto'}</Label>
           <div className="flex items-center gap-1 mb-1">
             <button onClick={() => wrapSelection('**')} style={{ padding: '6px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', background: 'none', color: 'hsl(0,0%,60%)', cursor: 'pointer' }} title="Negrito"><Bold className="w-3.5 h-3.5" /></button>
             <button onClick={() => wrapSelection('*')} style={{ padding: '6px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', background: 'none', color: 'hsl(0,0%,60%)', cursor: 'pointer' }} title="Itálico"><Italic className="w-3.5 h-3.5" /></button>
-            <span style={{ fontSize: '10px', color: 'hsl(0,0%,46%)', marginLeft: '4px' }}>Selecione + B ou I</span>
+            <span style={{ ...labelStyle, marginLeft: '4px' }}>Selecione + B ou I</span>
           </div>
-          <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+          <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" style={inputStyle} />
         </div>
       )}
 
       {slideType === 'content' && (
         <div className="space-y-2">
           <Label className="text-xs">Destaque / Citação (opcional)</Label>
-          <Textarea value={slide.quote} onChange={e => update('quote', e.target.value)} placeholder="Texto em destaque..." className="text-sm min-h-[50px] resize-y" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+          <Textarea value={slide.quote} onChange={e => update('quote', e.target.value)} placeholder="Texto em destaque..." className="text-sm min-h-[50px] resize-y" style={inputStyle} />
         </div>
       )}
 
@@ -236,24 +264,23 @@ export default function SlideEditor() {
         <>
           <div className="space-y-2">
             <Label className="text-xs">Arroba do perfil</Label>
-            <Input value={state.ctaHandle} onChange={e => dispatch({ type: 'SET_CTA', payload: { handle: e.target.value } })} placeholder="@seuperfil" className="h-9 text-sm" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+            <Input value={state.ctaHandle} onChange={e => dispatch({ type: 'SET_CTA', payload: { handle: e.target.value } })} placeholder="@seuperfil" className="h-9 text-sm" style={inputStyle} />
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Texto do CTA</Label>
-            <Textarea value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conteúdo" className="text-sm min-h-[60px] resize-y" style={{ background: 'hsl(0,0%,11%)', border: '1px solid hsl(0,0%,25%)', color: 'white', borderRadius: '8px' }} />
+            <Textarea value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conteúdo" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
           </div>
         </>
       )}
 
-      <div style={{ borderTop: '1px solid hsl(0,0%,18%)', paddingTop: '12px' }} />
+      <div style={sectionBorder} />
 
+      {/* Position */}
       <div className="space-y-2">
         <Label className="text-xs">Posição do texto</Label>
         <div className="flex gap-1">
           {([['top', ArrowUp, 'Topo'], ['center', Minus, 'Centro'], ['bottom', ArrowDown, 'Base']] as const).map(([pos, Icon, label]) => (
-            <button key={pos} onClick={() => update('textPosition', pos)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '12px', padding: '6px', borderRadius: '8px', border: slide.textPosition === pos ? '1px solid #A8E63D' : '1px solid hsl(0,0%,25%)', background: slide.textPosition === pos ? 'rgba(168,230,61,0.1)' : 'transparent', color: slide.textPosition === pos ? 'white' : 'hsl(0,0%,60%)', cursor: 'pointer', transition: 'all 150ms' }}>
-              <Icon className="w-3 h-3" /> {label}
-            </button>
+            <button key={pos} onClick={() => update('textPosition', pos)} style={activeBtn(slide.textPosition === pos)}><Icon className="w-3 h-3" /> {label}</button>
           ))}
         </div>
       </div>
@@ -262,9 +289,7 @@ export default function SlideEditor() {
         <Label className="text-xs">Alinhamento</Label>
         <div className="flex gap-1">
           {([['left', AlignLeft], ['center', AlignCenter], ['right', AlignRight]] as const).map(([align, Icon]) => (
-            <button key={align} onClick={() => update('textAlign', align)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', padding: '6px', borderRadius: '8px', border: slide.textAlign === align ? '1px solid #A8E63D' : '1px solid hsl(0,0%,25%)', background: slide.textAlign === align ? 'rgba(168,230,61,0.1)' : 'transparent', color: slide.textAlign === align ? 'white' : 'hsl(0,0%,60%)', cursor: 'pointer', transition: 'all 150ms' }}>
-              <Icon className="w-3.5 h-3.5" />
-            </button>
+            <button key={align} onClick={() => update('textAlign', align)} style={activeBtn(slide.textAlign === align)}><Icon className="w-3.5 h-3.5" /></button>
           ))}
         </div>
       </div>

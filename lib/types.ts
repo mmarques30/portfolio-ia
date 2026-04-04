@@ -1,3 +1,15 @@
+export interface SlideImage {
+  id: string
+  src: string
+  x: number
+  y: number
+  width: number
+  height: number
+  opacity: number
+  borderRadius: number
+  zIndex: number
+}
+
 export interface Slide {
   id: string
   title: string
@@ -11,6 +23,7 @@ export interface Slide {
   textSecondaryColor: string | null
   textPosition: 'top' | 'center' | 'bottom'
   textAlign: 'left' | 'center' | 'right'
+  overlayImages: SlideImage[]
 }
 
 export interface ColorConfig {

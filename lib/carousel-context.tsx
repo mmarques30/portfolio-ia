@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useReducer } from 'react'
-import { CarouselState, Slide, ColorConfig, FontConfig, BackgroundConfig, TemplateId, FormatType } from './types'
+import { CarouselState, Slide, SlideImage, ColorConfig, FontConfig, BackgroundConfig, TemplateId, FormatType } from './types'
 import { getTemplate } from './templates'
 
 function generateId(): string {
@@ -9,10 +9,16 @@ function generateId(): string {
 }
 
 function createDefaultSlide(index: number): Slide {
-  if (index === 0) {
-    return { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' }
+  const isCover = index === 0
+  return {
+    id: generateId(),
+    title: isCover ? 'Título do Carrossel' : `Slide ${index + 1}`,
+    body: isCover ? 'Subtítulo ou descrição breve' : 'Conteúdo do slide...',
+    quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000',
+    textColor: null, textSecondaryColor: null,
+    textPosition: 'center', textAlign: isCover ? 'center' : 'left',
+    overlayImages: [],
   }
-  return { id: generateId(), title: `Slide ${index + 1}`, body: 'Conteúdo do slide...', quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' }
 }
 
 const defaultTemplate = getTemplate('educational')
@@ -21,11 +27,11 @@ export const initialState: CarouselState = {
   id: generateId(),
   name: 'Meu Carrossel',
   slides: [
-    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' },
-    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left' },
-    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center' },
+    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center', overlayImages: [] },
+    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
+    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
+    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
+    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center', overlayImages: [] },
   ],
   activeSlideIndex: 0,
   template: 'educational',
@@ -61,6 +67,9 @@ type Action =
   | { type: 'LOAD_CAROUSEL'; payload: CarouselState }
   | { type: 'NEW_CAROUSEL' }
   | { type: 'GENERATE_SLIDES'; payload: Slide[] }
+  | { type: 'ADD_OVERLAY_IMAGE'; payload: { slideIndex: number; image: SlideImage } }
+  | { type: 'UPDATE_OVERLAY_IMAGE'; payload: { slideIndex: number; imageId: string; updates: Partial<SlideImage> } }
+  | { type: 'REMOVE_OVERLAY_IMAGE'; payload: { slideIndex: number; imageId: string } }
 
 function carouselReducer(state: CarouselState, action: Action): CarouselState {
   switch (action.type) {
@@ -69,10 +78,9 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
     case 'ADD_SLIDE': {
       if (state.slides.length >= 15) return state
       const newSlide = createDefaultSlide(state.slides.length)
-      const insertIndex = state.slides.length - 1
       const newSlides = [...state.slides]
-      newSlides.splice(insertIndex, 0, newSlide)
-      return { ...state, slides: newSlides, activeSlideIndex: insertIndex }
+      newSlides.splice(state.slides.length - 1, 0, newSlide)
+      return { ...state, slides: newSlides, activeSlideIndex: state.slides.length - 1 }
     }
     case 'REMOVE_SLIDE': {
       if (state.slides.length <= 1) return state
@@ -99,7 +107,7 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
     case 'DUPLICATE_SLIDE': {
       if (state.slides.length >= 15) return state
       const original = state.slides[action.payload]
-      const duplicate = { ...original, id: generateId() }
+      const duplicate = { ...original, id: generateId(), overlayImages: original.overlayImages.map(img => ({ ...img, id: generateId() })) }
       const slides = [...state.slides]
       slides.splice(action.payload + 1, 0, duplicate)
       return { ...state, slides, activeSlideIndex: action.payload + 1 }
@@ -120,6 +128,29 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
     case 'LOAD_CAROUSEL': return { ...action.payload }
     case 'NEW_CAROUSEL': return { ...initialState, id: generateId() }
     case 'GENERATE_SLIDES': return { ...state, slides: action.payload, activeSlideIndex: 0 }
+    case 'ADD_OVERLAY_IMAGE': {
+      const slides = [...state.slides]
+      const slide = { ...slides[action.payload.slideIndex] }
+      slide.overlayImages = [...(slide.overlayImages || []), action.payload.image]
+      slides[action.payload.slideIndex] = slide
+      return { ...state, slides }
+    }
+    case 'UPDATE_OVERLAY_IMAGE': {
+      const slides = [...state.slides]
+      const slide = { ...slides[action.payload.slideIndex] }
+      slide.overlayImages = (slide.overlayImages || []).map(img =>
+        img.id === action.payload.imageId ? { ...img, ...action.payload.updates } : img
+      )
+      slides[action.payload.slideIndex] = slide
+      return { ...state, slides }
+    }
+    case 'REMOVE_OVERLAY_IMAGE': {
+      const slides = [...state.slides]
+      const slide = { ...slides[action.payload.slideIndex] }
+      slide.overlayImages = (slide.overlayImages || []).filter(img => img.id !== action.payload.imageId)
+      slides[action.payload.slideIndex] = slide
+      return { ...state, slides }
+    }
     default: return state
   }
 }

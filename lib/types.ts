@@ -28,6 +28,10 @@ export interface Slide {
   bodySize: number
   paddingX: number
   paddingY: number
+  textOffsetY: number
+  textMaxWidth: number
+  showLogo: boolean
+  showSlideNumber: boolean
 }
 
 export interface ColorConfig {

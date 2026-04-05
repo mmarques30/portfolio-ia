@@ -185,7 +185,7 @@ export default function SlideEditor() {
         <div className="flex gap-3">
           <div className="flex items-center gap-1.5">
             <input type="color" value={slide.textColor || state.colors.text} onChange={e => update('textColor', e.target.value)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', cursor: 'pointer' }} />
-            <span style={labelStyle}>Título</span>
+            <span style={labelStyle}>T\u00edtulo</span>
           </div>
           <div className="flex items-center gap-1.5">
             <input type="color" value={slide.textSecondaryColor || state.colors.textSecondary} onChange={e => update('textSecondaryColor', e.target.value)} style={{ width: '24px', height: '24px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', cursor: 'pointer' }} />
@@ -203,16 +203,16 @@ export default function SlideEditor() {
       <div className="space-y-3">
         <div className="flex items-center gap-1.5">
           <Type className="w-3.5 h-3.5" style={{ color: '#A8E63D' }} />
-          <Label className="text-xs font-semibold">Tamanho e espaçamento</Label>
+          <Label className="text-xs font-semibold">Tamanho e espa\u00e7amento</Label>
         </div>
         <div className="space-y-2">
           <div>
-            <div className="flex justify-between"><Label style={labelStyle}>Título ({currentTitleSize}px)</Label></div>
-            <input type="range" min={16} max={96} value={currentTitleSize} onChange={e => update('titleSize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+            <div className="flex justify-between"><Label style={labelStyle}>T\u00edtulo ({currentTitleSize}px)</Label></div>
+            <input type="range" min={16} max={120} value={currentTitleSize} onChange={e => update('titleSize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
           </div>
           <div>
             <div className="flex justify-between"><Label style={labelStyle}>Corpo ({currentBodySize}px)</Label></div>
-            <input type="range" min={12} max={48} value={currentBodySize} onChange={e => update('bodySize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+            <input type="range" min={12} max={72} value={currentBodySize} onChange={e => update('bodySize', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
           </div>
           <div>
             <div className="flex justify-between"><Label style={labelStyle}>Margem horizontal ({currentPaddingX}px)</Label></div>
@@ -247,7 +247,7 @@ export default function SlideEditor() {
             <input type="checkbox" checked={slide.showLogo !== false} onChange={e => update('showLogo', e.target.checked)} className="accent-[#A8E63D]" style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
           </label>
           <label className="flex items-center justify-between cursor-pointer" style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid hsl(0,0%,25%)', background: 'hsl(0,0%,9%)' }}>
-            <span style={{ fontSize: '12px', color: 'hsl(0,0%,70%)' }}>Mostrar numeração neste slide</span>
+            <span style={{ fontSize: '12px', color: 'hsl(0,0%,70%)' }}>Mostrar numera\u00e7\u00e3o neste slide</span>
             <input type="checkbox" checked={slide.showSlideNumber !== false} onChange={e => update('showSlideNumber', e.target.checked)} className="accent-[#A8E63D]" style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
           </label>
         </div>
@@ -257,35 +257,35 @@ export default function SlideEditor() {
 
       {/* Emoji */}
       <div className="space-y-2">
-        <Label className="text-xs">Emoji / Ícone</Label>
-        <Input value={slide.emoji} onChange={e => update('emoji', e.target.value)} placeholder="Ex: ✨ 🚀" className="h-9 text-sm" style={inputStyle} />
+        <Label className="text-xs">Emoji / \u00cdcone</Label>
+        <Input value={slide.emoji} onChange={e => update('emoji', e.target.value)} placeholder="Ex: \u2728 \ud83d\ude80" className="h-9 text-sm" style={inputStyle} />
       </div>
 
       {/* Title */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-xs">Título</Label>
+          <Label className="text-xs">T\u00edtulo</Label>
           <span style={labelStyle}>Enter = nova linha</span>
         </div>
-        <Textarea value={slide.title} onChange={e => update('title', e.target.value)} placeholder="Título do slide" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
+        <Textarea value={slide.title} onChange={e => update('title', e.target.value)} placeholder="T\u00edtulo do slide" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
       </div>
 
       {/* Body - not for CTA */}
       {slideType !== 'cta' && (
         <div className="space-y-2">
-          <Label className="text-xs">{slideType === 'cover' ? 'Subtítulo' : 'Corpo do texto'}</Label>
+          <Label className="text-xs">{slideType === 'cover' ? 'Subt\u00edtulo' : 'Corpo do texto'}</Label>
           <div className="flex items-center gap-1 mb-1">
             <button onClick={() => wrapSelection('**')} style={{ padding: '6px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', background: 'none', color: 'hsl(0,0%,60%)', cursor: 'pointer' }} title="Negrito"><Bold className="w-3.5 h-3.5" /></button>
-            <button onClick={() => wrapSelection('*')} style={{ padding: '6px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', background: 'none', color: 'hsl(0,0%,60%)', cursor: 'pointer' }} title="Itálico"><Italic className="w-3.5 h-3.5" /></button>
+            <button onClick={() => wrapSelection('*')} style={{ padding: '6px', borderRadius: '6px', border: '1px solid hsl(0,0%,25%)', background: 'none', color: 'hsl(0,0%,60%)', cursor: 'pointer' }} title="It\u00e1lico"><Italic className="w-3.5 h-3.5" /></button>
             <span style={{ ...labelStyle, marginLeft: '4px' }}>Selecione + B ou I</span>
           </div>
-          <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={'Conteúdo do slide...\n\nUse Enter para parágrafos.'} className="text-sm min-h-[100px] resize-y" style={inputStyle} />
+          <Textarea ref={bodyRef} value={slide.body} onChange={e => update('body', e.target.value)} placeholder={'Conte\u00fado do slide...\n\nUse Enter para par\u00e1grafos.'} className="text-sm min-h-[100px] resize-y" style={inputStyle} />
         </div>
       )}
 
       {slideType === 'content' && (
         <div className="space-y-2">
-          <Label className="text-xs">Destaque / Citação (opcional)</Label>
+          <Label className="text-xs">Destaque / Cita\u00e7\u00e3o (opcional)</Label>
           <Textarea value={slide.quote} onChange={e => update('quote', e.target.value)} placeholder="Texto em destaque..." className="text-sm min-h-[50px] resize-y" style={inputStyle} />
         </div>
       )}
@@ -298,7 +298,7 @@ export default function SlideEditor() {
           </div>
           <div className="space-y-2">
             <Label className="text-xs">Texto do CTA</Label>
-            <Textarea value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conteúdo" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
+            <Textarea value={state.ctaText} onChange={e => dispatch({ type: 'SET_CTA', payload: { text: e.target.value } })} placeholder="Siga para mais conte\u00fado" className="text-sm min-h-[60px] resize-y" style={inputStyle} />
           </div>
         </>
       )}
@@ -307,7 +307,7 @@ export default function SlideEditor() {
 
       {/* Position */}
       <div className="space-y-2">
-        <Label className="text-xs">Posição do texto</Label>
+        <Label className="text-xs">Posi\u00e7\u00e3o do texto</Label>
         <div className="flex gap-1">
           {([['top', ArrowUp, 'Topo'], ['center', Minus, 'Centro'], ['bottom', ArrowDown, 'Base']] as const).map(([pos, Icon, label]) => (
             <button key={pos} onClick={() => update('textPosition', pos)} style={activeBtn(slide.textPosition === pos)}><Icon className="w-3 h-3" /> {label}</button>

@@ -20,6 +20,7 @@ function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left
     overlayImages: [],
     titleSize: 0, bodySize: 0,
     paddingX: 80, paddingY: 80,
+    textOffsetY: 0, textMaxWidth: 100, showLogo: true, showSlideNumber: true,
   }
 }
 

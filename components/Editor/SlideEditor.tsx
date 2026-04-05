@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { SlideType, SlideImage } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic, ImageIcon, Plus, Layers, Type } from 'lucide-react'
+import { Upload, X, AlignLeft, AlignCenter, AlignRight, ArrowUp, Minus, ArrowDown, Trash2, Bold, Italic, ImageIcon, Plus, Layers, Type, Eye } from 'lucide-react'
 
 function getSlideType(index: number, total: number): SlideType {
   if (index === 0) return 'cover'
@@ -27,7 +27,7 @@ export default function SlideEditor() {
 
   if (!slide) return null
 
-  function update(field: string, value: string | number | null) {
+  function update(field: string, value: string | number | boolean | null) {
     dispatch({ type: 'UPDATE_SLIDE', payload: { index: activeSlideIndex, slide: { [field]: value } } })
   }
 
@@ -97,6 +97,8 @@ export default function SlideEditor() {
   const currentBodySize = slide.bodySize || defaultBodySize
   const currentPaddingX = slide.paddingX ?? 80
   const currentPaddingY = slide.paddingY ?? 80
+  const currentTextOffsetY = slide.textOffsetY || 0
+  const currentTextMaxWidth = slide.textMaxWidth || 100
 
   return (
     <div className="p-4 space-y-4">
@@ -220,6 +222,34 @@ export default function SlideEditor() {
             <div className="flex justify-between"><Label style={labelStyle}>Margem vertical ({currentPaddingY}px)</Label></div>
             <input type="range" min={20} max={200} value={currentPaddingY} onChange={e => update('paddingY', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
           </div>
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Deslocamento vertical ({currentTextOffsetY}px)</Label></div>
+            <input type="range" min={-300} max={300} value={currentTextOffsetY} onChange={e => update('textOffsetY', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+          <div>
+            <div className="flex justify-between"><Label style={labelStyle}>Largura do texto ({currentTextMaxWidth}%)</Label></div>
+            <input type="range" min={30} max={100} value={currentTextMaxWidth} onChange={e => update('textMaxWidth', Number(e.target.value))} style={{ width: '100%' }} className="accent-[#A8E63D]" />
+          </div>
+        </div>
+      </div>
+
+      <div style={sectionBorder} />
+
+      {/* Visibility toggles */}
+      <div className="space-y-3">
+        <div className="flex items-center gap-1.5">
+          <Eye className="w-3.5 h-3.5" style={{ color: '#A8E63D' }} />
+          <Label className="text-xs font-semibold">Visibilidade</Label>
+        </div>
+        <div className="space-y-2">
+          <label className="flex items-center justify-between cursor-pointer" style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid hsl(0,0%,25%)', background: 'hsl(0,0%,9%)' }}>
+            <span style={{ fontSize: '12px', color: 'hsl(0,0%,70%)' }}>Mostrar logo neste slide</span>
+            <input type="checkbox" checked={slide.showLogo !== false} onChange={e => update('showLogo', e.target.checked)} className="accent-[#A8E63D]" style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+          </label>
+          <label className="flex items-center justify-between cursor-pointer" style={{ padding: '6px 8px', borderRadius: '8px', border: '1px solid hsl(0,0%,25%)', background: 'hsl(0,0%,9%)' }}>
+            <span style={{ fontSize: '12px', color: 'hsl(0,0%,70%)' }}>Mostrar numeração neste slide</span>
+            <input type="checkbox" checked={slide.showSlideNumber !== false} onChange={e => update('showSlideNumber', e.target.checked)} className="accent-[#A8E63D]" style={{ width: '16px', height: '16px', cursor: 'pointer' }} />
+          </label>
         </div>
       </div>
 

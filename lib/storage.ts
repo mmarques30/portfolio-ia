@@ -15,6 +15,8 @@ export function saveDraft(state: CarouselState): void {
       slides: state.slides.map(s => ({
         ...s,
         image: s.image && s.image.length > 50000 ? null : s.image,
+        // Strip overlay images entirely — they contain large base64 src strings
+        overlayImages: [],
       })),
       background: {
         ...state.background,
@@ -41,7 +43,7 @@ export function saveDraft(state: CarouselState): void {
       ...d,
       state: {
         ...d.state,
-        slides: d.state.slides.map(s => ({ ...s, image: null })),
+        slides: d.state.slides.map(s => ({ ...s, image: null, overlayImages: [] })),
         background: { ...d.state.background, image: null },
         logo: null,
         profileImage: null,
@@ -51,7 +53,11 @@ export function saveDraft(state: CarouselState): void {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(lighter))
     } catch {
       // Last resort: keep only 5 most recent
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(lighter.slice(0, 5)))
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(lighter.slice(0, 5)))
+      } catch (finalError) {
+        console.warn('Failed to save draft to localStorage even after stripping all images:', finalError)
+      }
     }
   }
 }

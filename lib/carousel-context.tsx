@@ -8,16 +8,34 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9)
 }
 
+const defaultSlideFields = {
+  quote: '',
+  emoji: '',
+  image: null as string | null,
+  imageOpacity: 0.5,
+  imageOverlayColor: '#000000',
+  textColor: null as string | null,
+  textSecondaryColor: null as string | null,
+  textPosition: 'center' as const,
+  overlayImages: [] as SlideImage[],
+  titleSize: 32,
+  bodySize: 18,
+  paddingX: 40,
+  paddingY: 40,
+  textOffsetY: 0,
+  textMaxWidth: 100,
+  showLogo: true,
+  showSlideNumber: true,
+}
+
 function createDefaultSlide(index: number): Slide {
   const isCover = index === 0
   return {
     id: generateId(),
     title: isCover ? 'Título do Carrossel' : `Slide ${index + 1}`,
     body: isCover ? 'Subtítulo ou descrição breve' : 'Conteúdo do slide...',
-    quote: '', emoji: '', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000',
-    textColor: null, textSecondaryColor: null,
-    textPosition: 'center', textAlign: isCover ? 'center' : 'left',
-    overlayImages: [],
+    textAlign: isCover ? 'center' : 'left',
+    ...defaultSlideFields,
   }
 }
 
@@ -27,11 +45,11 @@ export const initialState: CarouselState = {
   id: generateId(),
   name: 'Meu Carrossel',
   slides: [
-    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', quote: '', emoji: '✨', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center', overlayImages: [] },
-    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', quote: '', emoji: '1️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
-    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', quote: '', emoji: '2️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
-    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', quote: '', emoji: '3️⃣', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'left', overlayImages: [] },
-    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', quote: '', emoji: '👉', image: null, imageOpacity: 0.5, imageOverlayColor: '#000000', textColor: null, textSecondaryColor: null, textPosition: 'center', textAlign: 'center', overlayImages: [] },
+    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', emoji: '✨', textAlign: 'center', ...defaultSlideFields, emoji: '✨' },
+    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', emoji: '1️⃣', textAlign: 'left', ...defaultSlideFields, emoji: '1️⃣' },
+    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', emoji: '2️⃣', textAlign: 'left', ...defaultSlideFields, emoji: '2️⃣' },
+    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', emoji: '3️⃣', textAlign: 'left', ...defaultSlideFields, emoji: '3️⃣' },
+    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', emoji: '👉', textAlign: 'center', ...defaultSlideFields, emoji: '👉' },
   ],
   activeSlideIndex: 0,
   template: 'educational',

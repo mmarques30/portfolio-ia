@@ -11,9 +11,9 @@ interface GenerateOptions {
   isSingleAd?: boolean
 }
 
-function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left'): Slide {
+function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left', quote: string = ''): Slide {
   return {
-    id: generateId(), title, body, quote: '', emoji: '',
+    id: generateId(), title, body, quote, emoji: '',
     image: null, imageOpacity: 0.5, imageOverlayColor: '#000000',
     textColor: null, textSecondaryColor: null,
     textPosition: 'center', textAlign: align,
@@ -24,78 +24,152 @@ function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left
   }
 }
 
+function normalizeKey(s: string): string {
+  return s.toLowerCase()
+    .replace(/[áàâãä]/g, 'a')
+    .replace(/[éèêë]/g, 'e')
+    .replace(/[íìîï]/g, 'i')
+    .replace(/[óòôõö]/g, 'o')
+    .replace(/[úùûü]/g, 'u')
+    .replace(/[ç]/g, 'c')
+    .trim()
+}
+
 function detectFieldName(line: string): { field: string; value: string } | null {
-  const lower = line.toLowerCase().trim()
-  const fields = [
-    { keys: ['título:', 'titulo:'], field: 'titulo' },
-    { keys: ['subtítulo:', 'subtitulo:'], field: 'subtitulo' },
-    { keys: ['corpo:'], field: 'corpo' },
-    { keys: ['rodapé:', 'rodape:'], field: 'rodape' },
-    { keys: ['assinatura:'], field: 'assinatura' },
-  ]
-  for (const f of fields) {
-    for (const key of f.keys) {
-      if (lower.startsWith(key)) {
-        const value = line.substring(line.indexOf(':') + 1).trim()
-        return { field: f.field, value }
-      }
-    }
+  const trimmed = line.trim()
+  // Find first colon
+  const colonIdx = trimmed.indexOf(':')
+  if (colonIdx === -1) return null
+  const keyRaw = trimmed.substring(0, colonIdx).trim()
+  const value = trimmed.substring(colonIdx + 1).trim()
+  const key = normalizeKey(keyRaw)
+
+  // Strip parenthetical notes like "DESTAQUE (APLICAÇÃO PRÁTICA)"
+  const cleanKey = key.replace(/\s*\([^)]*\)\s*/g, '').trim()
+
+  // Map various field names to internal names
+  const fieldMap: Record<string, string> = {
+    'titulo': 'titulo',
+    'title': 'titulo',
+    'texto principal': 'titulo',
+    'texto': 'titulo',
+    'subtitulo': 'subtitulo',
+    'subtitle': 'subtitulo',
+    'texto secundario': 'subtitulo',
+    'corpo': 'corpo',
+    'body': 'corpo',
+    'conteudo': 'corpo',
+    'destaque': 'quote',
+    'citacao': 'quote',
+    'quote': 'quote',
+    'rodape': 'rodape',
+    'rodape destaque': 'rodape',
+    'footer': 'rodape',
+    'cta': 'cta',
+    'call to action': 'cta',
+    'assinatura': 'assinatura',
+    'signature': 'assinatura',
   }
+
+  const mapped = fieldMap[cleanKey]
+  if (mapped) return { field: mapped, value }
   return null
 }
 
 function parseStructuredScript(script: string): Slide[] {
   const slides: Slide[] = []
+
+  // Find first SLIDE marker
   const firstSlideIdx = script.search(/SLIDE\s*\d+/i)
   const cleanScript = firstSlideIdx >= 0 ? script.substring(firstSlideIdx) : script
+
+  // Split by SLIDE markers
   const blocks = cleanScript.split(/(?=SLIDE\s*\d+)/i).filter(b => b.trim().length > 0)
 
   for (const block of blocks) {
-    const lines = block.split('\n').filter(l => l.trim().length > 0)
+    // Remove separator lines (=, -, _, *, ═, —)
+    const lines = block
+      .split('\n')
+      .filter(l => {
+        const t = l.trim()
+        if (!t) return false
+        // Skip lines that are only separator characters
+        if (/^[=\-_*═—]+$/.test(t)) return false
+        return true
+      })
+
     if (lines.length === 0) continue
+
+    // Parse SLIDE header - supports: "SLIDE 1", "SLIDE 1 (CAPA)", "SLIDE 1 — CAPA", "SLIDE 1 - CAPA"
     const header = lines[0].trim()
-    const headerMatch = header.match(/SLIDE\s*(\d+)\s*(?:\(([^)]+)\))?/i)
+    const headerMatch = header.match(/SLIDE\s*(\d+)\s*(?:[—\-:(]\s*([^)]+?)\)?)?\s*$/i)
     if (!headerMatch) continue
 
     const slideNum = parseInt(headerMatch[1])
-    const label = (headerMatch[2] || '').toLowerCase()
+    const labelRaw = (headerMatch[2] || '').toLowerCase()
+    const label = normalizeKey(labelRaw)
     const isCover = label.includes('capa') || slideNum === 1
-    const isCTA = label.includes('cta') || label.includes('final')
+    const isCTA = label.includes('cta') || label.includes('final') || label.includes('proximo passo')
 
+    // Parse fields
     const fieldData: Record<string, string[]> = {}
     let currentField = ''
+
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim()
-      if (line === '---' || line === '') continue
-      const detected = detectFieldName(line)
+      const line = lines[i]
+      const trimmedLine = line.trim()
+      if (!trimmedLine) continue
+
+      const detected = detectFieldName(trimmedLine)
       if (detected) {
         currentField = detected.field
         if (!fieldData[currentField]) fieldData[currentField] = []
         if (detected.value) fieldData[currentField].push(detected.value)
       } else if (currentField) {
         if (!fieldData[currentField]) fieldData[currentField] = []
-        fieldData[currentField].push(line)
+        fieldData[currentField].push(trimmedLine)
       }
     }
 
     const titulo = (fieldData['titulo'] || []).join('\n')
     const subtitulo = (fieldData['subtitulo'] || []).join('\n')
     const corpo = (fieldData['corpo'] || []).join('\n')
-    const rodape = (fieldData['rodape'] || fieldData['assinatura'] || []).join('\n')
+    const quote = (fieldData['quote'] || []).join('\n')
+    const rodape = (fieldData['rodape'] || []).join('\n')
+    const cta = (fieldData['cta'] || []).join('\n')
+    const assinatura = (fieldData['assinatura'] || []).join('\n')
 
+    // Build the slide based on type
+    let finalTitle = titulo
     let finalBody = ''
+
     if (isCover) {
-      finalBody = subtitulo || corpo
+      // Cover: title is the main text, body is subtitle
+      finalTitle = titulo
+      finalBody = subtitulo
+      if (corpo && !subtitulo) finalBody = corpo
+      if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
+    } else if (isCTA) {
+      // CTA: title + cta + signature
+      finalTitle = titulo || cta
+      finalBody = subtitulo || corpo || cta
+      if (cta && finalBody !== cta) finalBody += (finalBody ? '\n\n' : '') + cta
+      if (assinatura) finalBody += (finalBody ? '\n\n' : '') + assinatura
       if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     } else {
+      // Content slide
+      finalTitle = titulo
       finalBody = corpo
       if (subtitulo && !corpo) finalBody = subtitulo
       if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     }
 
+    if (!finalTitle && !finalBody) continue
+
     const align = (isCover || isCTA) ? 'center' : 'left'
-    slides.push(makeSlide(titulo || `Slide ${slideNum}`, finalBody, align as 'left' | 'center'))
+    slides.push(makeSlide(finalTitle || `Slide ${slideNum}`, finalBody, align as 'left' | 'center', quote))
   }
+
   return slides
 }
 

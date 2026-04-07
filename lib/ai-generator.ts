@@ -37,17 +37,13 @@ function normalizeKey(s: string): string {
 
 function detectFieldName(line: string): { field: string; value: string } | null {
   const trimmed = line.trim()
-  // Find first colon
   const colonIdx = trimmed.indexOf(':')
   if (colonIdx === -1) return null
   const keyRaw = trimmed.substring(0, colonIdx).trim()
   const value = trimmed.substring(colonIdx + 1).trim()
   const key = normalizeKey(keyRaw)
-
-  // Strip parenthetical notes like "DESTAQUE (APLICAÇÃO PRÁTICA)"
   const cleanKey = key.replace(/\s*\([^)]*\)\s*/g, '').trim()
 
-  // Map various field names to internal names
   const fieldMap: Record<string, string> = {
     'titulo': 'titulo',
     'title': 'titulo',
@@ -78,29 +74,20 @@ function detectFieldName(line: string): { field: string; value: string } | null 
 
 function parseStructuredScript(script: string): Slide[] {
   const slides: Slide[] = []
-
-  // Find first SLIDE marker
   const firstSlideIdx = script.search(/SLIDE\s*\d+/i)
   const cleanScript = firstSlideIdx >= 0 ? script.substring(firstSlideIdx) : script
-
-  // Split by SLIDE markers
   const blocks = cleanScript.split(/(?=SLIDE\s*\d+)/i).filter(b => b.trim().length > 0)
 
   for (const block of blocks) {
-    // Remove separator lines (=, -, _, *, ═, —)
-    const lines = block
-      .split('\n')
-      .filter(l => {
-        const t = l.trim()
-        if (!t) return false
-        // Skip lines that are only separator characters
-        if (/^[=\-_*═—]+$/.test(t)) return false
-        return true
-      })
+    const lines = block.split('\n').filter(l => {
+      const t = l.trim()
+      if (!t) return false
+      if (/^[=\-_*═—]+$/.test(t)) return false
+      return true
+    })
 
     if (lines.length === 0) continue
 
-    // Parse SLIDE header - supports: "SLIDE 1", "SLIDE 1 (CAPA)", "SLIDE 1 — CAPA", "SLIDE 1 - CAPA"
     const header = lines[0].trim()
     const headerMatch = header.match(/SLIDE\s*(\d+)\s*(?:[—\-:(]\s*([^)]+?)\)?)?\s*$/i)
     if (!headerMatch) continue
@@ -111,7 +98,6 @@ function parseStructuredScript(script: string): Slide[] {
     const isCover = label.includes('capa') || slideNum === 1
     const isCTA = label.includes('cta') || label.includes('final') || label.includes('proximo passo')
 
-    // Parse fields
     const fieldData: Record<string, string[]> = {}
     let currentField = ''
 
@@ -139,25 +125,21 @@ function parseStructuredScript(script: string): Slide[] {
     const cta = (fieldData['cta'] || []).join('\n')
     const assinatura = (fieldData['assinatura'] || []).join('\n')
 
-    // Build the slide based on type
     let finalTitle = titulo
     let finalBody = ''
 
     if (isCover) {
-      // Cover: title is the main text, body is subtitle
       finalTitle = titulo
       finalBody = subtitulo
       if (corpo && !subtitulo) finalBody = corpo
       if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     } else if (isCTA) {
-      // CTA: title + cta + signature
       finalTitle = titulo || cta
       finalBody = subtitulo || corpo || cta
       if (cta && finalBody !== cta) finalBody += (finalBody ? '\n\n' : '') + cta
       if (assinatura) finalBody += (finalBody ? '\n\n' : '') + assinatura
       if (rodape) finalBody += (finalBody ? '\n\n' : '') + rodape
     } else {
-      // Content slide
       finalTitle = titulo
       finalBody = corpo
       if (subtitulo && !corpo) finalBody = subtitulo

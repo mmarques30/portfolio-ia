@@ -18,7 +18,7 @@ function makeSlide(title: string, body: string, align: 'left' | 'center' = 'left
     textColor: null, textSecondaryColor: null,
     textPosition: 'center', textAlign: align,
     overlayImages: [],
-    titleSize: 0, bodySize: 0,
+    titleSize: 32, bodySize: 18,
     paddingX: 80, paddingY: 80,
     textOffsetY: 0, textMaxWidth: 100, showLogo: true, showSlideNumber: true,
   }

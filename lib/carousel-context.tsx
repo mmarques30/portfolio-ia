@@ -45,11 +45,11 @@ export const initialState: CarouselState = {
   id: generateId(),
   name: 'Meu Carrossel',
   slides: [
-    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', emoji: '✨', textAlign: 'center', ...defaultSlideFields },
-    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', emoji: '1️⃣', textAlign: 'left', ...defaultSlideFields },
-    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', emoji: '2️⃣', textAlign: 'left', ...defaultSlideFields },
-    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', emoji: '3️⃣', textAlign: 'left', ...defaultSlideFields },
-    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', emoji: '👉', textAlign: 'center', ...defaultSlideFields },
+    { id: generateId(), title: 'Título do Carrossel', body: 'Subtítulo ou descrição breve', textAlign: 'center', ...defaultSlideFields, emoji: '✨' },
+    { id: generateId(), title: 'Primeiro Ponto', body: 'Desenvolva sua ideia aqui com detalhes relevantes para seu público.', textAlign: 'left', ...defaultSlideFields, emoji: '1️⃣' },
+    { id: generateId(), title: 'Segundo Ponto', body: 'Continue construindo sua narrativa de forma clara e objetiva.', textAlign: 'left', ...defaultSlideFields, emoji: '2️⃣' },
+    { id: generateId(), title: 'Terceiro Ponto', body: 'Reforce sua mensagem com exemplos práticos ou dados.', textAlign: 'left', ...defaultSlideFields, emoji: '3️⃣' },
+    { id: generateId(), title: 'Gostou do conteúdo?', body: 'Salve este post e siga para mais!', textAlign: 'center', ...defaultSlideFields, emoji: '👉' },
   ],
   activeSlideIndex: 0,
   template: 'educational',
@@ -125,7 +125,7 @@ function carouselReducer(state: CarouselState, action: Action): CarouselState {
     case 'DUPLICATE_SLIDE': {
       if (state.slides.length >= 15) return state
       const original = state.slides[action.payload]
-      const duplicate = { ...original, id: generateId(), overlayImages: (original.overlayImages || []).map(img => ({ ...img, id: generateId() })) }
+      const duplicate = { ...original, id: generateId(), overlayImages: original.overlayImages.map(img => ({ ...img, id: generateId() })) }
       const slides = [...state.slides]
       slides.splice(action.payload + 1, 0, duplicate)
       return { ...state, slides, activeSlideIndex: action.payload + 1 }
